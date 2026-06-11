@@ -1,7 +1,6 @@
 #!/bin/bash
-# Bali Willy Tour - Build Script
-# Creates a minimal deployment artifact with just source code
-# The deployment container will run: bun install && bun run dev
+# Bali Willy Tour - Build Script for Space-Z Platform
+# Creates deployment artifact with standalone production build
 
 exec 2>&1
 set -e
@@ -11,74 +10,90 @@ export NEXT_TELEMETRY_DISABLED=1
 
 echo "=== Bali Willy Tour - Build ==="
 
-# Verify the project builds successfully
-echo "[1/3] Verifying build..."
-
-# Install dependencies if needed
-if [ ! -d "node_modules" ]; then
-  if command -v bun &>/dev/null; then
-    bun install 2>&1
-  elif [ -f "package-lock.json" ]; then
-    npm ci --prefer-offline 2>&1 || npm install 2>&1
-  else
-    npm install 2>&1
-  fi
+# [1/4] Install dependencies
+echo "[1/4] Installing dependencies..."
+if command -v bun &>/dev/null; then
+  bun install 2>&1
+elif [ -f "package-lock.json" ]; then
+  npm ci --prefer-offline 2>&1 || npm install 2>&1
+else
+  npm install 2>&1
 fi
 
-# Quick build check (don't need to keep the output)
-echo "Running build verification..."
-npx next build 2>&1 | tail -5
-echo "  ✓ Build verified"
+# [2/4] Build standalone production output
+echo "[2/4] Building standalone production..."
+if command -v bun &>/dev/null; then
+  bun run build 2>&1
+else
+  npx next build 2>&1
+fi
 
-# Create minimal deployment artifact
+# Verify standalone output
+if [ ! -f ".next/standalone/server.js" ]; then
+  echo "ERROR: Standalone build failed - server.js not found!"
+  echo "Make sure next.config.ts has output: 'standalone'"
+  exit 1
+fi
+echo "  ✓ Standalone build successful"
+
+# [3/4] Copy static files into standalone directory
+echo "[3/4] Copying static files..."
+# Copy public/ → .next/standalone/public/
+if [ -d "public" ]; then
+  cp -r public .next/standalone/public 2>/dev/null || true
+  echo "  ✓ public/ copied"
+fi
+# Copy .next/static/ → .next/standalone/.next/static/
+if [ -d ".next/static" ]; then
+  mkdir -p .next/standalone/.next
+  cp -r .next/static .next/standalone/.next/static 2>/dev/null || true
+  echo "  ✓ .next/static/ copied"
+fi
+# Copy Caddyfile → .next/standalone/Caddyfile
+if [ -f "Caddyfile" ]; then
+  cp Caddyfile .next/standalone/Caddyfile
+  echo "  ✓ Caddyfile copied"
+fi
+# Copy .zscripts (dev.sh, start.sh) → .next/standalone/.zscripts/
+if [ -d ".zscripts" ]; then
+  mkdir -p .next/standalone/.zscripts
+  cp .zscripts/dev.sh .next/standalone/.zscripts/dev.sh 2>/dev/null || true
+  cp .zscripts/start.sh .next/standalone/.zscripts/start.sh 2>/dev/null || true
+  chmod +x .next/standalone/.zscripts/*.sh 2>/dev/null || true
+  echo "  ✓ .zscripts/ copied"
+fi
+
+# [4/4] Create deployment artifact
 if [ -n "$BUILD_ID" ]; then
-  echo "[2/3] Creating deployment artifact..."
+  echo "[4/4] Creating deployment artifact..."
   ARTIFACT="/tmp/build_fullstack_${BUILD_ID}"
 
-  # Package ONLY what's needed for bun install + bun run dev
-  # No node_modules, no .next - those will be created in the deployment container
+  # Package from the standalone directory (flattened structure)
+  # The platform expects: server.js at root, Caddyfile at root, .zscripts/ at root
+  cd .next/standalone
+
   tar czf "${ARTIFACT}.tar.gz" \
-    --exclude='./node_modules' \
-    --exclude='.git' \
-    --exclude='./.next' \
-    --exclude='./out' \
-    --exclude='./skills' \
-    --exclude='./download' \
-    --exclude='./upload' \
-    --exclude='./agent-ctx' \
-    --exclude='./db' \
-    --exclude='./mini-services' \
-    --exclude='./mini-services-dist' \
-    --exclude='./next-service-dist' \
-    --exclude='.pm2' \
-    --exclude='*.log' \
-    --exclude='./serve-static.js' \
-    --exclude='./.zscripts.backup' \
-    --exclude='./.zscripts/*.bak' \
-    --exclude='./.zscripts/dev.pid' \
-    --exclude='./.zscripts/watchdog.sh' \
-    --exclude='./.zscripts/mini-services-*' \
-    --exclude='./.zscripts/build.sh' \
-    --exclude='./worklog.md' \
-    --exclude='./bootstrap' \
+    --exclude='./node_modules/.cache' \
+    --exclude='./src' \
     .
+
+  cd /home/z/my-project
 
   SIZE=$(du -sh "${ARTIFACT}.tar.gz" 2>/dev/null | cut -f1 || echo "unknown")
   echo "Artifact created: ${ARTIFACT}.tar.gz ($SIZE)"
 
-  # Verify critical files
-  echo "[3/3] Verifying artifact..."
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "package\.json" && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "bun\.lock" && echo "  ✓ bun.lock" || echo "  ✗ bun.lock MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "src/app" && echo "  ✓ src/app/" || echo "  ✗ src/app/ MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "next\.config" && echo "  ✓ next.config" || echo "  ✗ next.config MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/dev\.sh" && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
+  # Verify critical files in artifact
+  echo "Verifying artifact contents..."
+  tar tzf "${ARTIFACT}.tar.gz" | head -30
+  echo "---"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "server\.js" && echo "  ✓ server.js" || echo "  ✗ server.js MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "Caddyfile" && echo "  ✓ Caddyfile" || echo "  ✗ Caddyfile MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "node_modules" && echo "  ✗ node_modules FOUND (should be excluded!)" || echo "  ✓ node_modules excluded"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.next" && echo "  ✗ .next FOUND (should be excluded!)" || echo "  ✓ .next excluded"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/dev\.sh" && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.next/static" && echo "  ✓ .next/static" || echo "  ✗ .next/static MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "package\.json" && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
 else
-  echo "[2/3] No BUILD_ID set, skipping artifact creation"
+  echo "[4/4] No BUILD_ID set, skipping artifact creation"
 fi
 
 echo "=== Build Complete ==="
