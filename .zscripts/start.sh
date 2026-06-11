@@ -1,28 +1,19 @@
 #!/bin/bash
+# Bali Willy Tour - Start Script for Space-Z Platform
+# Delegates to dev.sh for startup
 cd /home/z/my-project || exit 1
 export PORT=3000
 export HOSTNAME=0.0.0.0
 export NEXT_TELEMETRY_DISABLED=1
 
-echo "=== Bali Willy Tour - Starting (Production) ==="
+echo "=== Bali Willy Tour - Starting ==="
 
-# Use dev.sh for startup (handles all cases: flattened artifact, standalone, dev)
+# Use dev.sh for startup
 if [ -f "./.zscripts/dev.sh" ]; then
   exec bash .zscripts/dev.sh
 fi
 
-# Fallback: if standalone server exists at root (flattened artifact)
-if [ -f "server.js" ]; then
-  exec node server.js
-fi
-
-# Fallback: standalone in .next/standalone/
-if [ -f ".next/standalone/server.js" ]; then
-  cd .next/standalone
-  exec node server.js
-fi
-
-# Last resort: dev server
+# Fallback: install deps and run dev mode
 if [ ! -d "node_modules" ]; then
   if command -v bun &>/dev/null; then
     bun install 2>&1
