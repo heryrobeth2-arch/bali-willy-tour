@@ -1,6 +1,7 @@
 #!/bin/bash
 # Bali Willy Tour - Build Script for Space-Z Platform
 # Creates deployment artifact with standalone production build
+# Artifact structure: flattened from .next/standalone/ so server.js is at root
 
 exec 2>&1
 set -e
@@ -37,16 +38,18 @@ fi
 echo "  ✓ Standalone build successful"
 
 # [3/4] Copy static files into standalone directory
-echo "[3/4] Copying static files..."
+echo "[3/4] Copying static files into standalone directory..."
 # Copy public/ → .next/standalone/public/
 if [ -d "public" ]; then
-  cp -r public .next/standalone/public 2>/dev/null || true
+  rm -rf .next/standalone/public 2>/dev/null
+  cp -r public .next/standalone/public
   echo "  ✓ public/ copied"
 fi
 # Copy .next/static/ → .next/standalone/.next/static/
 if [ -d ".next/static" ]; then
   mkdir -p .next/standalone/.next
-  cp -r .next/static .next/standalone/.next/static 2>/dev/null || true
+  rm -rf .next/standalone/.next/static 2>/dev/null
+  cp -r .next/static .next/standalone/.next/static
   echo "  ✓ .next/static/ copied"
 fi
 # Copy Caddyfile → .next/standalone/Caddyfile
@@ -55,13 +58,11 @@ if [ -f "Caddyfile" ]; then
   echo "  ✓ Caddyfile copied"
 fi
 # Copy .zscripts (dev.sh, start.sh) → .next/standalone/.zscripts/
-if [ -d ".zscripts" ]; then
-  mkdir -p .next/standalone/.zscripts
-  cp .zscripts/dev.sh .next/standalone/.zscripts/dev.sh 2>/dev/null || true
-  cp .zscripts/start.sh .next/standalone/.zscripts/start.sh 2>/dev/null || true
-  chmod +x .next/standalone/.zscripts/*.sh 2>/dev/null || true
-  echo "  ✓ .zscripts/ copied"
-fi
+mkdir -p .next/standalone/.zscripts
+cp .zscripts/dev.sh .next/standalone/.zscripts/dev.sh
+cp .zscripts/start.sh .next/standalone/.zscripts/start.sh
+chmod +x .next/standalone/.zscripts/*.sh
+echo "  ✓ .zscripts/ copied"
 
 # [4/4] Create deployment artifact
 if [ -n "$BUILD_ID" ]; then
@@ -69,7 +70,8 @@ if [ -n "$BUILD_ID" ]; then
   ARTIFACT="/tmp/build_fullstack_${BUILD_ID}"
 
   # Package from the standalone directory (flattened structure)
-  # The platform expects: server.js at root, Caddyfile at root, .zscripts/ at root
+  # After extraction by platform, files will be at /home/z/my-project/:
+  #   server.js, node_modules/, .next/, public/, Caddyfile, .zscripts/
   cd .next/standalone
 
   tar czf "${ARTIFACT}.tar.gz" \
@@ -84,14 +86,14 @@ if [ -n "$BUILD_ID" ]; then
 
   # Verify critical files in artifact
   echo "Verifying artifact contents..."
-  tar tzf "${ARTIFACT}.tar.gz" | head -30
-  echo "---"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "server\.js" && echo "  ✓ server.js" || echo "  ✗ server.js MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "^\./server\.js$" && echo "  ✓ server.js at root" || echo "  ✗ server.js MISSING at root"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "Caddyfile" && echo "  ✓ Caddyfile" || echo "  ✗ Caddyfile MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/dev\.sh" && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/start\.sh" && echo "  ✓ .zscripts/start.sh" || echo "  ✗ .zscripts/start.sh MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.next/static" && echo "  ✓ .next/static" || echo "  ✗ .next/static MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "package\.json" && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "node_modules" && echo "  ✓ node_modules (standalone)" || echo "  ✗ node_modules MISSING"
 else
   echo "[4/4] No BUILD_ID set, skipping artifact creation"
 fi

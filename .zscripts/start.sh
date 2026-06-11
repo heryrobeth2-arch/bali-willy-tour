@@ -6,18 +6,23 @@ export NEXT_TELEMETRY_DISABLED=1
 
 echo "=== Bali Willy Tour - Starting (Production) ==="
 
-# Use dev.sh for startup (handles standalone + fallback)
+# Use dev.sh for startup (handles all cases: flattened artifact, standalone, dev)
 if [ -f "./.zscripts/dev.sh" ]; then
   exec bash .zscripts/dev.sh
 fi
 
-# Fallback: if standalone server exists, run it
+# Fallback: if standalone server exists at root (flattened artifact)
+if [ -f "server.js" ]; then
+  exec node server.js
+fi
+
+# Fallback: standalone in .next/standalone/
 if [ -f ".next/standalone/server.js" ]; then
   cd .next/standalone
   exec node server.js
 fi
 
-# Last resort: install and start dev
+# Last resort: dev server
 if [ ! -d "node_modules" ]; then
   if command -v bun &>/dev/null; then
     bun install 2>&1
