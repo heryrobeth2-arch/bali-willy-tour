@@ -107,7 +107,12 @@ self.__SERVER_FILES_MANIFEST={
     "outputFileTracingRoot": "/home/z/my-project",
     "allowedDevOrigins": [
       ".space.chatglm.site",
-      ".space-z.ai"
+      ".space-z.ai",
+      ".devsapp.net",
+      ".fc.devsapp.net",
+      ".aliyuncs.com",
+      ".z.ai",
+      "localhost"
     ],
     "cacheComponents": false,
     "cacheLife": {
