@@ -2,66 +2,83 @@
 
 set -e
 
-# Bali Willy Tour - Start Script for Space-Z Platform
-# This script runs in the deployment container after artifact extraction
-# IMPORTANT: Uses DEV mode so allowedDevOrigins works for iframe preview
-
+# 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR" || exit 1
+BUILD_DIR="$SCRIPT_DIR"
 
-echo "Starting Bali Willy Tour..."
+# 存储所有子进程的 PID
+pids=""
+
+# 清理函数：优雅关闭所有服务
+cleanup() {
+    echo ""
+    echo "🛑 正在关闭所有服务..."
+
+    for pid in $pids; do
+        if kill -0 "$pid" 2>/dev/null; then
+            kill -TERM "$pid" 2>/dev/null
+        fi
+    done
+
+    sleep 1
+    for pid in $pids; do
+        if kill -0 "$pid" 2>/dev/null; then
+            kill -KILL "$pid" 2>/dev/null
+        fi
+    done
+
+    echo "✅ 所有服务已关闭"
+    exit 0
+}
+
+echo "🚀 启动 Bali Willy Tour..."
+echo ""
+
+# 切换到构建目录
+cd "$BUILD_DIR" || exit 1
+
 ls -lah
 
-# Set environment variables
-export PORT="${PORT:-3000}"
-export HOSTNAME="${HOSTNAME:-0.0.0.0}"
-export NEXT_TELEMETRY_DISABLED=1
-export NODE_ENV=development
+# 启动 Next.js 服务器
+if [ -f "./next-service-dist/server.js" ]; then
+    echo "🚀 启动 Next.js 服务器..."
+    cd next-service-dist/ || exit 1
 
-# Install dependencies
-echo "Installing dependencies..."
-bun install
+    # 设置环境变量
+    export NODE_ENV=production
+    export PORT="${PORT:-3000}"
+    export HOSTNAME="${HOSTNAME:-0.0.0.0}"
 
-# Start dev server (NOT production - allowedDevOrigins only works in dev mode)
-echo "Starting Next.js dev server (dev mode for iframe preview)..."
-bun run dev &
-DEV_PID=$!
+    # 后台启动 Next.js
+    bun server.js &
+    NEXT_PID=$!
+    pids="$NEXT_PID"
 
-# Wait for server to be ready
-echo "Waiting for dev server to start..."
-attempts=0
-max_attempts=60
-while [ $attempts -lt $max_attempts ]; do
-    if curl -s --connect-timeout 2 --max-time 5 "http://localhost:3000" > /dev/null 2>&1; then
-        echo "Next.js dev server is ready!"
-        break
-    fi
-    attempts=$((attempts + 1))
-    echo "Attempt $attempts/$max_attempts: waiting..."
+    # 等待一小段时间检查进程是否成功启动
     sleep 2
-done
+    if ! kill -0 "$NEXT_PID" 2>/dev/null; then
+        echo "❌ Next.js 服务器启动失败"
+        exit 1
+    else
+        echo "✅ Next.js 服务器已启动 (PID: $NEXT_PID, Port: $PORT)"
+    fi
 
-if [ $attempts -ge $max_attempts ]; then
-    echo "ERROR: Dev server failed to start within $max_attempts attempts"
-    exit 1
+    cd ../
+else
+    echo "⚠️  未找到 Next.js 服务器文件: ./next-service-dist/server.js"
+    echo "尝试 dev 模式启动..."
+    if [ -f "./.zscripts/dev.sh" ]; then
+        bash .zscripts/dev.sh &
+        NEXT_PID=$!
+        pids="$NEXT_PID"
+    fi
 fi
 
-# Health check
-echo "Performing health check..."
-curl -fsS localhost:3000 > /dev/null
-echo "Health check passed!"
-
-# Write PID file
-echo "$DEV_PID" > .zscripts/dev.pid
-echo "Dev server PID: $DEV_PID"
-
-disown "$DEV_PID" 2>/dev/null || true
-
-# Start Caddy as foreground process (main process)
+# 启动 Caddy（如果存在 Caddyfile）
 if [ -f "Caddyfile" ]; then
-    echo "Starting Caddy..."
+    echo "🚀 启动 Caddy..."
     exec caddy run --config Caddyfile --adapter caddyfile
 else
-    echo "No Caddyfile found, keeping process alive..."
-    wait "$DEV_PID"
+    echo "ℹ️  无 Caddyfile，等待进程结束..."
+    wait "$NEXT_PID"
 fi
