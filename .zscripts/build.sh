@@ -74,6 +74,7 @@ if [ -n "$BUILD_ID" ]; then
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "Caddyfile" && echo "  ✓ Caddyfile" || echo "  ✗ Caddyfile MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "tsconfig" && echo "  ✓ tsconfig" || echo "  ✗ tsconfig MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "origin-stripper" && echo "  ✓ origin-stripper.js" || echo "  ✗ origin-stripper.js MISSING"
 else
   echo "[3/3] No BUILD_ID set, skipping artifact creation"
 fi
