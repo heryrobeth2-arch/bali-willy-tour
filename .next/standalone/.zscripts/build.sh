@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bali Willy Tour - Build Script for Space-Z Platform
-# Creates STANDALONE production deployment artifact
-# Production mode has NO cross-origin check (fixes preview iframe)
+# Follows platform Z.ai recommended configuration
+# Uses output: "standalone" with exact preview hostname in allowedDevOrigins
 
 exec 2>&1
 set -e
@@ -9,7 +9,7 @@ set -e
 cd /home/z/my-project || exit 1
 export NEXT_TELEMETRY_DISABLED=1
 
-echo "=== Bali Willy Tour - Build (Standalone Production) ==="
+echo "=== Bali Willy Tour - Build (Standalone) ==="
 
 # [1/3] Install dependencies
 echo "[1/3] Installing dependencies..."
@@ -31,13 +31,13 @@ fi
 
 # Verify standalone output
 if [ ! -f ".next/standalone/server.js" ]; then
-  echo "ERROR: Standalone build failed - server.js not found in .next/standalone/!"
+  echo "ERROR: Standalone build failed - server.js not found!"
   exit 1
 fi
 echo "  ✓ Standalone build successful"
 
 # Copy static files into standalone directory
-echo "Copying static files into standalone directory..."
+echo "Copying static files..."
 if [ -d "public" ]; then
   rm -rf .next/standalone/public 2>/dev/null
   cp -r public .next/standalone/public
@@ -53,7 +53,6 @@ fi
 # Copy scripts
 mkdir -p .next/standalone/.zscripts
 cp .zscripts/dev.sh .next/standalone/.zscripts/dev.sh
-cp .zscripts/start.sh .next/standalone/.zscripts/start.sh 2>/dev/null || true
 cp .zscripts/build.sh .next/standalone/.zscripts/build.sh 2>/dev/null || true
 chmod +x .next/standalone/.zscripts/*.sh
 echo "  ✓ .zscripts/ copied"
@@ -64,31 +63,11 @@ if [ -f "Caddyfile" ]; then
   echo "  ✓ Caddyfile copied"
 fi
 
-# Copy origin-stripper.js (for dev mode fallback)
-if [ -f "origin-stripper.js" ]; then
-  cp origin-stripper.js .next/standalone/origin-stripper.js
-  echo "  ✓ origin-stripper.js copied"
-fi
-
-# Copy custom-server.js (for dev mode fallback)
-if [ -f "custom-server.js" ]; then
-  cp custom-server.js .next/standalone/custom-server.js
-  echo "  ✓ custom-server.js copied"
-fi
-
 # [3/3] Create deployment artifact (FLATTENED from standalone dir)
 if [ -n "$BUILD_ID" ]; then
   echo "[3/3] Creating deployment artifact..."
   ARTIFACT="/tmp/build_fullstack_${BUILD_ID}"
 
-  # Package from the standalone directory (flattened structure)
-  # After platform extraction to /home/z/my-project/:
-  #   /home/z/my-project/server.js
-  #   /home/z/my-project/node_modules/
-  #   /home/z/my-project/.next/
-  #   /home/z/my-project/public/
-  #   /home/z/my-project/Caddyfile
-  #   /home/z/my-project/.zscripts/
   cd .next/standalone
 
   tar czf "${ARTIFACT}.tar.gz" \
@@ -104,13 +83,10 @@ if [ -n "$BUILD_ID" ]; then
   # Verify critical files
   echo "Verifying artifact..."
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "^\./server\.js$" && echo "  ✓ server.js at root" || echo "  ✗ server.js at root MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "Caddyfile" && echo "  ✓ Caddyfile" || echo "  ✗ Caddyfile MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/dev\.sh" && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.next/static" && echo "  ✓ .next/static" || echo "  ✗ .next/static MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "package\.json" && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "node_modules/next" && echo "  ✓ node_modules/next" || echo "  ✗ node_modules/next MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "origin-stripper" && echo "  ✓ origin-stripper.js" || echo "  ✗ origin-stripper.js MISSING"
 else
   echo "[3/3] No BUILD_ID set, skipping artifact creation"
 fi

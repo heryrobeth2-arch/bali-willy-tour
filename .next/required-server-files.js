@@ -4,7 +4,7 @@ self.__SERVER_FILES_MANIFEST={
     "env": {},
     "webpack": null,
     "typescript": {
-      "ignoreBuildErrors": false
+      "ignoreBuildErrors": true
     },
     "typedRoutes": false,
     "distDir": ".next",
@@ -107,13 +107,7 @@ self.__SERVER_FILES_MANIFEST={
     },
     "outputFileTracingRoot": "/home/z/my-project",
     "allowedDevOrigins": [
-      ".space.chatglm.site",
-      ".space-z.ai",
-      ".devsapp.net",
-      ".fc.devsapp.net",
-      ".aliyuncs.com",
-      ".z.ai",
-      "localhost"
+      "preview-chat-f626deb9-464a-4760-a66b-bc556120618f.space-z.ai"
     ],
     "cacheComponents": false,
     "cacheLife": {

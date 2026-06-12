@@ -1,8 +1,7 @@
 #!/bin/bash
 # Bali Willy Tour - Build Script for Space-Z Platform
-# Creates a SOURCE CODE deployment artifact
-# Runtime uses: npx next dev + NODE_OPTIONS="--require origin-stripper.js"
-# This bypasses Next.js cross-origin check for iframe preview
+# Follows platform Z.ai recommended configuration
+# Uses output: "standalone" with exact preview hostname in allowedDevOrigins
 
 exec 2>&1
 set -e
@@ -10,10 +9,10 @@ set -e
 cd /home/z/my-project || exit 1
 export NEXT_TELEMETRY_DISABLED=1
 
-echo "=== Bali Willy Tour - Build (Source Code Artifact) ==="
+echo "=== Bali Willy Tour - Build (Standalone) ==="
 
-# Install dependencies
-echo "[1/2] Installing dependencies..."
+# [1/3] Install dependencies
+echo "[1/3] Installing dependencies..."
 if command -v bun &>/dev/null; then
   bun install 2>&1
 elif [ -f "package-lock.json" ]; then
@@ -22,47 +21,74 @@ else
   npm install 2>&1
 fi
 
-# Verify critical files exist
-echo "Verifying critical files..."
-[ -f "origin-stripper.js" ] && echo "  ✓ origin-stripper.js" || echo "  ✗ origin-stripper.js MISSING"
-[ -f ".zscripts/dev.sh" ] && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
-[ -f "src/middleware.ts" ] && echo "  ✓ src/middleware.ts" || echo "  ✗ src/middleware.ts MISSING"
-[ -f "next.config.ts" ] && echo "  ✓ next.config.ts" || echo "  ✗ next.config.ts MISSING"
-[ -f "package.json" ] && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
+# [2/3] Build standalone production output
+echo "[2/3] Building standalone production..."
+if command -v bun &>/dev/null; then
+  bun run build 2>&1
+else
+  npx next build 2>&1
+fi
 
-# Create deployment artifact (source code only - no build needed)
-# The dev server (npx next dev) compiles on-the-fly
+# Verify standalone output
+if [ ! -f ".next/standalone/server.js" ]; then
+  echo "ERROR: Standalone build failed - server.js not found!"
+  exit 1
+fi
+echo "  ✓ Standalone build successful"
+
+# Copy static files into standalone directory
+echo "Copying static files..."
+if [ -d "public" ]; then
+  rm -rf .next/standalone/public 2>/dev/null
+  cp -r public .next/standalone/public
+  echo "  ✓ public/ copied"
+fi
+if [ -d ".next/static" ]; then
+  mkdir -p .next/standalone/.next
+  rm -rf .next/standalone/.next/static 2>/dev/null
+  cp -r .next/static .next/standalone/.next/static
+  echo "  ✓ .next/static/ copied"
+fi
+
+# Copy scripts
+mkdir -p .next/standalone/.zscripts
+cp .zscripts/dev.sh .next/standalone/.zscripts/dev.sh
+cp .zscripts/build.sh .next/standalone/.zscripts/build.sh 2>/dev/null || true
+chmod +x .next/standalone/.zscripts/*.sh
+echo "  ✓ .zscripts/ copied"
+
+# Copy Caddyfile
+if [ -f "Caddyfile" ]; then
+  cp Caddyfile .next/standalone/Caddyfile
+  echo "  ✓ Caddyfile copied"
+fi
+
+# [3/3] Create deployment artifact (FLATTENED from standalone dir)
 if [ -n "$BUILD_ID" ]; then
-  echo "[2/2] Creating deployment artifact..."
+  echo "[3/3] Creating deployment artifact..."
   ARTIFACT="/tmp/build_fullstack_${BUILD_ID}"
 
+  cd .next/standalone
+
   tar czf "${ARTIFACT}.tar.gz" \
-    --exclude='./node_modules' \
-    --exclude='./.next' \
-    --exclude='./.git' \
-    --exclude='./skills' \
-    --exclude='./.zscripts.backup' \
-    --exclude='./.zscripts.backup2' \
-    --exclude='./agent-ctx' \
-    --exclude='./worklog.md' \
-    --exclude='./download' \
-    --exclude='./custom-server.js' \
-    --exclude='.DS_Store' \
+    --exclude='./node_modules/.cache' \
+    --exclude='./src' \
     .
+
+  cd /home/z/my-project
 
   SIZE=$(du -sh "${ARTIFACT}.tar.gz" 2>/dev/null | cut -f1 || echo "unknown")
   echo "Artifact created: ${ARTIFACT}.tar.gz ($SIZE)"
 
-  # Verify critical files in artifact
-  echo "Verifying artifact contents..."
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "origin-stripper" && echo "  ✓ origin-stripper.js" || echo "  ✗ origin-stripper.js MISSING"
+  # Verify critical files
+  echo "Verifying artifact..."
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "^\./server\.js$" && echo "  ✓ server.js at root" || echo "  ✗ server.js at root MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.zscripts/dev\.sh" && echo "  ✓ .zscripts/dev.sh" || echo "  ✗ .zscripts/dev.sh MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "next\.config" && echo "  ✓ next.config" || echo "  ✗ next.config MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "\.next/static" && echo "  ✓ .next/static" || echo "  ✗ .next/static MISSING"
+  tar tzf "${ARTIFACT}.tar.gz" | grep -q "public/" && echo "  ✓ public/" || echo "  ✗ public/ MISSING"
   tar tzf "${ARTIFACT}.tar.gz" | grep -q "package\.json" && echo "  ✓ package.json" || echo "  ✗ package.json MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "src/middleware" && echo "  ✓ src/middleware.ts" || echo "  ✗ src/middleware.ts MISSING"
-  tar tzf "${ARTIFACT}.tar.gz" | grep -q "src/app" && echo "  ✓ src/app/" || echo "  ✗ src/app/ MISSING"
 else
-  echo "[2/2] No BUILD_ID set, skipping artifact creation"
+  echo "[3/3] No BUILD_ID set, skipping artifact creation"
 fi
 
 echo "=== Build Complete ==="
