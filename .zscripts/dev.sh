@@ -1,55 +1,23 @@
 #!/bin/bash
 # Bali Willy Tour - Dev Script for Space-Z Platform
 # This script runs as user 'z' in the deployment container
-# Priority 1: Standalone production server (no cross-origin check)
-# Priority 2: Dev mode with origin stripping
+#
+# CRITICAL: Must use Node.js runtime (npx next dev), NOT bun run dev
+# Bun doesn't respect NODE_OPTIONS env var, so origin-stripper.js won't load
+# Node.js respects NODE_OPTIONS, so the origin-stripper patch takes effect
 
 cd /home/z/my-project || { echo "FATAL: Cannot cd to /home/z/my-project"; exit 1; }
 export PORT=3000
 export HOSTNAME=0.0.0.0
 export NEXT_TELEMETRY_DISABLED=1
+export NODE_ENV=development
 
 echo "=== Bali Willy Tour - Starting ==="
 echo "PWD: $(pwd)"
 echo "Node: $(node --version 2>/dev/null || echo 'NOT FOUND')"
-echo "Bun: $(bun --version 2>/dev/null || echo 'NOT FOUND')"
 echo "Files at root: $(ls -1 | tr '\n' ' ')"
 
-# Priority 1: Standalone server at root (from flattened artifact)
-# Production mode has NO cross-origin check - this fixes the preview iframe
-if [ -f "server.js" ]; then
-  echo ""
-  echo "Found server.js at root - starting STANDALONE PRODUCTION server..."
-  echo "Production mode bypasses Next.js cross-origin check for iframe preview"
-  exec node server.js
-fi
-
-# Priority 2: Standalone server in .next/standalone/
-if [ -f ".next/standalone/server.js" ]; then
-  echo ""
-  echo "Found .next/standalone/server.js - starting standalone server..."
-  # Copy static files if needed
-  if [ -d "public" ] && [ ! -d ".next/standalone/public" ]; then
-    cp -r public .next/standalone/public
-  fi
-  if [ -d ".next/static" ] && [ ! -d ".next/standalone/.next/static" ]; then
-    mkdir -p .next/standalone/.next
-    cp -r .next/static .next/standalone/.next/static
-  fi
-  cd .next/standalone
-  exec node server.js
-fi
-
-# Priority 3: Dev mode with origin stripping
-echo ""
-echo "No standalone build found. Starting DEV mode with origin stripping..."
-
-export NODE_ENV=development
-if [ -f "origin-stripper.js" ]; then
-  export NODE_OPTIONS="--require /home/z/my-project/origin-stripper.js"
-  echo "Origin stripper loaded - bypassing Next.js cross-origin checks"
-fi
-
+# Install dependencies if needed
 if [ ! -d "node_modules" ] || [ ! -d "node_modules/next" ]; then
   echo "Installing dependencies..."
   if command -v bun &>/dev/null; then
@@ -59,8 +27,16 @@ if [ ! -d "node_modules" ] || [ ! -d "node_modules/next" ]; then
   fi
 fi
 
-if command -v bun &>/dev/null; then
-  exec bun run dev
-else
-  exec npx next dev -p $PORT -H 0.0.0.0
+# Load origin-stripper.js via NODE_OPTIONS (strips Origin headers at HTTP level)
+# This bypasses Next.js cross-origin check, allowing iframe preview to work
+if [ -f "origin-stripper.js" ]; then
+  export NODE_OPTIONS="--require /home/z/my-project/origin-stripper.js"
+  echo "Origin stripper loaded via NODE_OPTIONS"
+  echo "Cross-origin iframe requests will be allowed"
 fi
+
+# IMPORTANT: Use npx next dev, NOT bun run dev
+# bun doesn't respect NODE_OPTIONS and uses its own JavaScript runtime,
+# so the origin-stripper.js patch would have NO EFFECT with bun
+echo "Starting Next.js dev server with Node.js runtime..."
+exec npx next dev -p $PORT -H 0.0.0.0
