@@ -9,6 +9,7 @@ export const translations = {
       rencanaPerjalanan: "Rencana Perjalanan",
       tentangKami: "Tentang Kami",
       kontakBooking: "Kontak / Booking",
+      membership: "Membership",
     },
 
     // Header
@@ -282,6 +283,7 @@ export const translations = {
       rencanaPerjalanan: "Travel Itinerary",
       tentangKami: "About Us",
       kontakBooking: "Contact / Booking",
+      membership: "Membership",
     },
 
     header: {
@@ -527,6 +529,7 @@ export const translations = {
       rencanaPerjalanan: "行程安排",
       tentangKami: "关于我们",
       kontakBooking: "联系/预订",
+      membership: "会员",
     },
 
     header: {

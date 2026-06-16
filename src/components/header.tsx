@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, MessageCircle } from "lucide-react";
+import { Menu, MessageCircle, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -27,6 +27,7 @@ export function Header() {
     { href: "#rencana-perjalanan", label: t.nav.rencanaPerjalanan },
     { href: "#tentang-kami", label: t.nav.tentangKami },
     { href: "#kontak-booking", label: t.nav.kontakBooking },
+    { href: "/membership", label: t.nav.membership, icon: Crown },
   ];
 
   useEffect(() => {
@@ -94,12 +95,13 @@ export function Header() {
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const sectionId = link.href.replace("#", "");
-              const isActive = activeSection === sectionId;
+              const isMembershipPage = link.href.startsWith("/");
+              const isActive = !isMembershipPage && activeSection === sectionId;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`px-3.5 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 ${
                     isActive
                       ? scrolled
                         ? "bg-teal-600 text-white shadow-sm"
@@ -107,8 +109,9 @@ export function Header() {
                       : scrolled
                       ? "text-gray-700 hover:text-teal-600 hover:bg-teal-50"
                       : "text-white/85 hover:text-white hover:bg-white/10"
-                  }`}
+                  } ${isMembershipPage ? (scrolled ? "bg-gradient-to-r from-teal-600 to-sky-500 text-white shadow-sm" : "bg-white/20 text-white backdrop-blur-sm") : ""}`}
                 >
+                  {link.icon && <link.icon className="size-4" />}
                   {link.label}
                 </Link>
               );
@@ -173,18 +176,20 @@ export function Header() {
           <nav className="flex flex-col gap-1 px-4 mt-4">
             {navLinks.map((link) => {
               const sectionId = link.href.replace("#", "");
-              const isActive = activeSection === sectionId;
+              const isMembershipPage = link.href.startsWith("/");
+              const isActive = !isMembershipPage && activeSection === sectionId;
               return (
                 <SheetClose asChild key={link.href}>
                   <Link
                     href={link.href}
-                    className={`flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors ${
+                    className={`flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors gap-2 ${
                       isActive
                         ? "bg-teal-600 text-white"
                         : "text-gray-700 hover:text-teal-600 hover:bg-teal-50"
-                    }`}
+                    } ${isMembershipPage ? "bg-gradient-to-r from-teal-600 to-sky-500 text-white" : ""}`}
                     onClick={() => setIsOpen(false)}
                   >
+                    {link.icon && <link.icon className="size-5" />}
                     {link.label}
                   </Link>
                 </SheetClose>

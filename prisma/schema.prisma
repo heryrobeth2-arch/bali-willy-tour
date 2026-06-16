@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Member {
+  memberId     String   @map("member_id") @id
+  nama         String
+  email        String   @unique
+  noWhatsapp   String   @map("no_whatsapp")
+  password     String
+  totalPoin    Int      @default(0) @map("total_poin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  transactions PointTransaction[]
+}
+
+model TourPackage {
+  packageId   String   @map("package_id") @id @default(cuid())
+  namaTour    String   @map("nama_tour")
+  deskripsi   String
+  gambarUrl   String   @map("gambar_url")
+  customLink  String   @map("custom_link")
+  createdAt   DateTime @default(now()) @map("created_at")
+}
+
+model Reward {
+  rewardId    String   @map("reward_id") @id @default(cuid())
+  namaReward  String   @map("nama_reward")
+  poinNeeded  Int      @map("poin_needed")
+  deskripsi   String
+  createdAt   DateTime @default(now()) @map("created_at")
+}
+
+model PointTransaction {
+  transactionId String   @map("transaction_id") @id @default(cuid())
+  memberId      String   @map("member_id")
+  type          String   // "earn" or "redeem"
+  amount        Int
+  description   String
+  status        String   @default("pending") // "pending", "used", "expired"
+  createdAt     DateTime @default(now()) @map("created_at")
+  member        Member   @relation(fields: [memberId], references: [memberId])
+}
+
+model Admin {
+  adminId   String   @map("admin_id") @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+}

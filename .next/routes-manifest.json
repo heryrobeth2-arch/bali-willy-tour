@@ -48,7 +48,48 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/members/[id]",
+      "regex": "^/api/members/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/members/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/members/[id]/transactions",
+      "regex": "^/api/members/([^/]+?)/transactions(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/members/(?<nxtPid>[^/]+?)/transactions(?:/)?$"
+    },
+    {
+      "page": "/api/rewards/[id]",
+      "regex": "^/api/rewards/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/rewards/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/tour-packages/[id]",
+      "regex": "^/api/tour\\-packages/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/tour\\-packages/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/vouchers/[id]/verify",
+      "regex": "^/api/vouchers/([^/]+?)/verify(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/vouchers/(?<nxtPid>[^/]+?)/verify(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -73,6 +114,78 @@
       "regex": "^/api(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api(?:/)?$"
+    },
+    {
+      "page": "/api/auth/admin",
+      "regex": "^/api/auth/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/admin(?:/)?$"
+    },
+    {
+      "page": "/api/auth/member",
+      "regex": "^/api/auth/member(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/member(?:/)?$"
+    },
+    {
+      "page": "/api/members",
+      "regex": "^/api/members(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/members(?:/)?$"
+    },
+    {
+      "page": "/api/rewards",
+      "regex": "^/api/rewards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/rewards(?:/)?$"
+    },
+    {
+      "page": "/api/rewards/redeem",
+      "regex": "^/api/rewards/redeem(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/rewards/redeem(?:/)?$"
+    },
+    {
+      "page": "/api/tour-packages",
+      "regex": "^/api/tour\\-packages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tour\\-packages(?:/)?$"
+    },
+    {
+      "page": "/api/vouchers",
+      "regex": "^/api/vouchers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/vouchers(?:/)?$"
+    },
+    {
+      "page": "/membership",
+      "regex": "^/membership(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/membership(?:/)?$"
+    },
+    {
+      "page": "/membership/admin",
+      "regex": "^/membership/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/membership/admin(?:/)?$"
+    },
+    {
+      "page": "/membership/admin/dashboard",
+      "regex": "^/membership/admin/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/membership/admin/dashboard(?:/)?$"
+    },
+    {
+      "page": "/membership/dashboard",
+      "regex": "^/membership/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/membership/dashboard(?:/)?$"
+    },
+    {
+      "page": "/membership/login",
+      "regex": "^/membership/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/membership/login(?:/)?$"
     }
   ],
   "dataRoutes": [],

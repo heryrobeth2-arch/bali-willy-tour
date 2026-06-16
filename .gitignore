@@ -63,3 +63,5 @@ server.log
 /download/
 worklog.md
 keep-alive.sh
+
+/src/generated/prisma

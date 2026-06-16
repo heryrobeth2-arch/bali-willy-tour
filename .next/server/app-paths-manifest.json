@@ -1,6 +1,23 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/admin/route": "app/api/auth/admin/route.js",
+  "/api/auth/member/route": "app/api/auth/member/route.js",
+  "/api/members/[id]/route": "app/api/members/[id]/route.js",
+  "/api/members/[id]/transactions/route": "app/api/members/[id]/transactions/route.js",
+  "/api/members/route": "app/api/members/route.js",
+  "/api/rewards/[id]/route": "app/api/rewards/[id]/route.js",
+  "/api/rewards/redeem/route": "app/api/rewards/redeem/route.js",
+  "/api/rewards/route": "app/api/rewards/route.js",
   "/api/route": "app/api/route.js",
+  "/api/tour-packages/[id]/route": "app/api/tour-packages/[id]/route.js",
+  "/api/tour-packages/route": "app/api/tour-packages/route.js",
+  "/api/vouchers/[id]/verify/route": "app/api/vouchers/[id]/verify/route.js",
+  "/api/vouchers/route": "app/api/vouchers/route.js",
+  "/membership/admin/dashboard/page": "app/membership/admin/dashboard/page.js",
+  "/membership/admin/page": "app/membership/admin/page.js",
+  "/membership/dashboard/page": "app/membership/dashboard/page.js",
+  "/membership/login/page": "app/membership/login/page.js",
+  "/membership/page": "app/membership/page.js",
   "/page": "app/page.js"
 }
