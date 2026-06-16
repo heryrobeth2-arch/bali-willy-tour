@@ -5,9 +5,9 @@
   "devFiles": [],
   "polyfillFiles": [],
   "lowPriorityFiles": [
-    "static/okzL6SPsJk6sjWlPoVs8O/_buildManifest.js",
-    "static/okzL6SPsJk6sjWlPoVs8O/_ssgManifest.js",
-    "static/okzL6SPsJk6sjWlPoVs8O/_clientMiddlewareManifest.js"
+    "static/-GgSQbvrzubkYocdVUFng/_buildManifest.js",
+    "static/-GgSQbvrzubkYocdVUFng/_ssgManifest.js",
+    "static/-GgSQbvrzubkYocdVUFng/_clientMiddlewareManifest.js"
   ],
   "rootMainFiles": []
 }
