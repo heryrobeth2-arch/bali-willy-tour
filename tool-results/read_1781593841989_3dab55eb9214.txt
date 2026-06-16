@@ -1,0 +1,690 @@
+   200→        return;
+   201→      }
+   202→      showNotification("success", "Member deleted successfully!");
+   203→      fetchData();
+   204→    } catch {
+   205→      showNotification("error", "Network error");
+   206→    }
+   207→  };
+   208→
+   209→  // CRUD: Tour Packages
+   210→  const openAddTour = () => {
+   211→    setTourForm({ namaTour: "", deskripsi: "", gambarUrl: "", customLink: "" });
+   212→    setTourDialog({ open: true, mode: "add", data: null });
+   213→  };
+   214→
+   215→  const openEditTour = (tour: TourPackage) => {
+   216→    setTourForm({
+   217→      namaTour: tour.namaTour,
+   218→      deskripsi: tour.deskripsi,
+   219→      gambarUrl: tour.gambarUrl,
+   220→      customLink: tour.customLink,
+   221→    });
+   222→    setTourDialog({ open: true, mode: "edit", data: tour });
+   223→  };
+   224→
+   225→  const saveTour = async () => {
+   226→    try {
+   227→      if (tourDialog.mode === "add") {
+   228→        const res = await fetch("/api/tour-packages", {
+   229→          method: "POST",
+   230→          headers: { "Content-Type": "application/json" },
+   231→          body: JSON.stringify(tourForm),
+   232→        });
+   233→        if (!res.ok) {
+   234→          showNotification("error", "Failed to add tour package");
+   235→          return;
+   236→        }
+   237→        showNotification("success", "Tour package added!");
+   238→      } else {
+   239→        const res = await fetch(`/api/tour-packages/${tourDialog.data!.packageId}`, {
+   240→          method: "PUT",
+   241→          headers: { "Content-Type": "application/json" },
+   242→          body: JSON.stringify(tourForm),
+   243→        });
+   244→        if (!res.ok) {
+   245→          showNotification("error", "Failed to update tour package");
+   246→          return;
+   247→        }
+   248→        showNotification("success", "Tour package updated!");
+   249→      }
+   250→      setTourDialog({ open: false, mode: "add", data: null });
+   251→      fetchData();
+   252→    } catch {
+   253→      showNotification("error", "Network error");
+   254→    }
+   255→  };
+   256→
+   257→  const deleteTour = async (id: string) => {
+   258→    if (!confirm("Delete this tour package?")) return;
+   259→    try {
+   260→      const res = await fetch(`/api/tour-packages/${id}`, { method: "DELETE" });
+   261→      if (!res.ok) {
+   262→        showNotification("error", "Failed to delete");
+   263→        return;
+   264→      }
+   265→      showNotification("success", "Tour package deleted!");
+   266→      fetchData();
+   267→    } catch {
+   268→      showNotification("error", "Network error");
+   269→    }
+   270→  };
+   271→
+   272→  // CRUD: Rewards
+   273→  const openAddReward = () => {
+   274→    setRewardForm({ namaReward: "", poinNeeded: 0, deskripsi: "" });
+   275→    setRewardDialog({ open: true, mode: "add", data: null });
+   276→  };
+   277→
+   278→  const openEditReward = (reward: Reward) => {
+   279→    setRewardForm({
+   280→      namaReward: reward.namaReward,
+   281→      poinNeeded: reward.poinNeeded,
+   282→      deskripsi: reward.deskripsi,
+   283→    });
+   284→    setRewardDialog({ open: true, mode: "edit", data: reward });
+   285→  };
+   286→
+   287→  const saveReward = async () => {
+   288→    try {
+   289→      if (rewardDialog.mode === "add") {
+   290→        const res = await fetch("/api/rewards", {
+   291→          method: "POST",
+   292→          headers: { "Content-Type": "application/json" },
+   293→          body: JSON.stringify(rewardForm),
+   294→        });
+   295→        if (!res.ok) {
+   296→          showNotification("error", "Failed to add reward");
+   297→          return;
+   298→        }
+   299→        showNotification("success", "Reward added!");
+   300→      } else {
+   301→        const res = await fetch(`/api/rewards/${rewardDialog.data!.rewardId}`, {
+   302→          method: "PUT",
+   303→          headers: { "Content-Type": "application/json" },
+   304→          body: JSON.stringify(rewardForm),
+   305→        });
+   306→        if (!res.ok) {
+   307→          showNotification("error", "Failed to update reward");
+   308→          return;
+   309→        }
+   310→        showNotification("success", "Reward updated!");
+   311→      }
+   312→      setRewardDialog({ open: false, mode: "add", data: null });
+   313→      fetchData();
+   314→    } catch {
+   315→      showNotification("error", "Network error");
+   316→    }
+   317→  };
+   318→
+   319→  const deleteReward = async (id: string) => {
+   320→    if (!confirm("Delete this reward?")) return;
+   321→    try {
+   322→      const res = await fetch(`/api/rewards/${id}`, { method: "DELETE" });
+   323→      if (!res.ok) {
+   324→        showNotification("error", "Failed to delete");
+   325→        return;
+   326→      }
+   327→      showNotification("success", "Reward deleted!");
+   328→      fetchData();
+   329→    } catch {
+   330→      showNotification("error", "Network error");
+   331→    }
+   332→  };
+   333→
+   334→  // Verify voucher
+   335→  const verifyVoucher = async (transactionId: string, status: "used" | "expired") => {
+   336→    try {
+   337→      const res = await fetch(`/api/vouchers/${transactionId}/verify`, {
+   338→        method: "PUT",
+   339→        headers: { "Content-Type": "application/json" },
+   340→        body: JSON.stringify({ status }),
+   341→      });
+   342→      if (!res.ok) {
+   343→        showNotification("error", "Failed to verify voucher");
+   344→        return;
+   345→      }
+   346→      showNotification("success", `Voucher marked as ${status}!`);
+   347→      fetchData();
+   348→    } catch {
+   349→      showNotification("error", "Network error");
+   350→    }
+   351→  };
+   352→
+   353→  const handleLogout = () => {
+   354→    localStorage.removeItem("bwt-admin");
+   355→    router.push("/membership/admin");
+   356→  };
+   357→
+   358→  const formatDate = (dateStr: string) => {
+   359→    return new Date(dateStr).toLocaleDateString("en-GB", {
+   360→      day: "numeric", month: "short", year: "numeric",
+   361→    });
+   362→  };
+   363→
+   364→  const filteredMembers = members.filter((m) =>
+   365→    m.nama.toLowerCase().includes(memberSearch.toLowerCase()) ||
+   366→    m.memberId.toLowerCase().includes(memberSearch.toLowerCase()) ||
+   367→    m.email.toLowerCase().includes(memberSearch.toLowerCase())
+   368→  );
+   369→
+   370→  if (loading) {
+   371→    return (
+   372→      <div className="min-h-screen flex items-center justify-center" style={{ background: "#1a1a2e" }}>
+   373→        <div className="text-center">
+   374→          <div className="w-12 h-12 border-4 border-sky-500/30 border-t-sky-500 rounded-full animate-spin mx-auto mb-4" />
+   375→          <p style={{ color: "#94a3b8" }}>Loading admin panel...</p>
+   376→        </div>
+   377→      </div>
+   378→    );
+   379→  }
+   380→
+   381→  const inputStyle = { background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", color: "white" };
+   382→
+   383→  return (
+   384→    <div className="min-h-screen flex flex-col" style={{ background: "#1a1a2e" }}>
+   385→      {/* Header */}
+   386→      <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: "rgba(26,26,46,0.95)", borderColor: "rgba(255,255,255,0.1)" }}>
+   387→        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   388→          <div className="flex items-center justify-between h-16">
+   389→            <div className="flex items-center gap-2">
+   390→              <Shield className="size-6" style={{ color: "#0ea5e9" }} />
+   391→              <span className="text-lg font-bold text-white">BWT Admin</span>
+   392→            </div>
+   393→            <div className="flex items-center gap-3">
+   394→              <Link href="/">
+   395→                <Button variant="ghost" className="rounded-full text-sm" style={{ color: "#94a3b8" }}>
+   396→                  View Site
+   397→                </Button>
+   398→              </Link>
+   399→              <Button onClick={handleLogout} variant="ghost" className="rounded-full" style={{ color: "#94a3b8" }}>
+   400→                <LogOut className="size-4 mr-2" />
+   401→                Logout
+   402→              </Button>
+   403→            </div>
+   404→          </div>
+   405→        </div>
+   406→      </header>
+   407→
+   408→      {/* Notification */}
+   409→      {notification && (
+   410→        <div
+   411→          className="fixed top-20 right-4 z-[100] px-4 py-3 rounded-xl text-sm shadow-lg animate-in fade-in slide-in-from-right"
+   412→          style={{
+   413→            background: notification.type === "success" ? "#0d9488" : "#dc2626",
+   414→            color: "white",
+   415→          }}
+   416→        >
+   417→          {notification.text}
+   418→        </div>
+   419→      )}
+   420→
+   421→      {/* Main Content */}
+   422→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+   423→        <Tabs value={activeTab} onValueChange={setActiveTab}>
+   424→          <TabsList className="mb-6 w-full sm:w-auto rounded-xl p-1" style={{ background: "#252540" }}>
+   425→            <TabsTrigger value="members" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
+   426→              <Users className="size-4" />
+   427→              <span className="hidden sm:inline">Members</span>
+   428→            </TabsTrigger>
+   429→            <TabsTrigger value="tours" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
+   430→              <MapPin className="size-4" />
+   431→              <span className="hidden sm:inline">Tour Packages</span>
+   432→            </TabsTrigger>
+   433→            <TabsTrigger value="rewards" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
+   434→              <Gift className="size-4" />
+   435→              <span className="hidden sm:inline">Rewards</span>
+   436→            </TabsTrigger>
+   437→            <TabsTrigger value="vouchers" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
+   438→              <CheckCircle className="size-4" />
+   439→              <span className="hidden sm:inline">Vouchers</span>
+   440→            </TabsTrigger>
+   441→          </TabsList>
+   442→
+   443→          {/* Members Tab */}
+   444→          <TabsContent value="members">
+   445→            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+   446→              <h2 className="text-2xl font-bold text-white">Member Management</h2>
+   447→              <div className="flex items-center gap-3 w-full sm:w-auto">
+   448→                <div className="relative flex-1 sm:flex-initial">
+   449→                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4" style={{ color: "#64748b" }} />
+   450→                  <Input
+   451→                    placeholder="Search members..."
+   452→                    value={memberSearch}
+   453→                    onChange={(e) => setMemberSearch(e.target.value)}
+   454→                    className="rounded-xl pl-9 h-10"
+   455→                    style={inputStyle}
+   456→                  />
+   457→                </div>
+   458→                <Button onClick={openAddMember} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
+   459→                  <Plus className="size-4" />
+   460→                  <span className="hidden sm:inline">Add</span>
+   461→                </Button>
+   462→              </div>
+   463→            </div>
+   464→
+   465→            <Card className="border-0 rounded-2xl overflow-hidden" style={{ background: "#252540" }}>
+   466→              <div className="overflow-x-auto">
+   467→                <table className="w-full text-sm">
+   468→                  <thead>
+   469→                    <tr style={{ background: "#1a1a2e" }}>
+   470→                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>ID</th>
+   471→                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Name</th>
+   472→                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell" style={{ color: "#94a3b8" }}>Email</th>
+   473→                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Points</th>
+   474→                      <th className="text-right px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Actions</th>
+   475→                    </tr>
+   476→                  </thead>
+   477→                  <tbody>
+   478→                    {filteredMembers.map((m) => (
+   479→                      <tr key={m.memberId} className="border-t" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+   480→                        <td className="px-4 py-3 font-mono text-sm" style={{ color: "#14b8a6" }}>{m.memberId}</td>
+   481→                        <td className="px-4 py-3 text-white">{m.nama}</td>
+   482→                        <td className="px-4 py-3 hidden sm:table-cell" style={{ color: "#94a3b8" }}>{m.email}</td>
+   483→                        <td className="px-4 py-3 font-semibold text-white">{m.totalPoin.toLocaleString()}</td>
+   484→                        <td className="px-4 py-3 text-right">
+   485→                          <div className="flex items-center justify-end gap-2">
+   486→                            <Button onClick={() => openEditMember(m)} variant="ghost" size="icon" className="rounded-lg" style={{ color: "#0ea5e9" }}>
+   487→                              <Pencil className="size-4" />
+   488→                            </Button>
+   489→                            <Button onClick={() => deleteMember(m.memberId)} variant="ghost" size="icon" className="rounded-lg" style={{ color: "#ef4444" }}>
+   490→                              <Trash2 className="size-4" />
+   491→                            </Button>
+   492→                          </div>
+   493→                        </td>
+   494→                      </tr>
+   495→                    ))}
+   496→                    {filteredMembers.length === 0 && (
+   497→                      <tr>
+   498→                        <td colSpan={5} className="text-center py-8" style={{ color: "#64748b" }}>
+   499→                          No members found
+   500→                        </td>
+   501→                      </tr>
+   502→                    )}
+   503→                  </tbody>
+   504→                </table>
+   505→              </div>
+   506→            </Card>
+   507→          </TabsContent>
+   508→
+   509→          {/* Tour Packages Tab */}
+   510→          <TabsContent value="tours">
+   511→            <div className="flex items-center justify-between mb-6">
+   512→              <h2 className="text-2xl font-bold text-white">Tour Package Management</h2>
+   513→              <Button onClick={openAddTour} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
+   514→                <Plus className="size-4" />
+   515→                <span className="hidden sm:inline">Add Package</span>
+   516→              </Button>
+   517→            </div>
+   518→
+   519→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   520→              {tourPackages.map((tour) => (
+   521→                <Card key={tour.packageId} className="border-0 rounded-2xl" style={{ background: "#252540" }}>
+   522→                  <CardContent className="p-5">
+   523→                    <h3 className="text-lg font-bold text-white mb-2">{tour.namaTour}</h3>
+   524→                    <p style={{ color: "#94a3b8" }} className="text-sm mb-3 line-clamp-2">{tour.deskripsi}</p>
+   525→                    <div className="flex items-center gap-2 mb-3">
+   526→                      <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(14,165,233,0.2)", color: "#0ea5e9" }}>
+   527→                        {tour.gambarUrl}
+   528→                      </span>
+   529→                    </div>
+   530→                    <p className="text-xs truncate mb-3" style={{ color: "#64748b" }}>
+   531→                      Link: {tour.customLink}
+   532→                    </p>
+   533→                    <div className="flex items-center gap-2">
+   534→                      <Button onClick={() => openEditTour(tour)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(14,165,233,0.3)", color: "#0ea5e9" }}>
+   535→                        <Pencil className="size-3" />
+   536→                        Edit
+   537→                      </Button>
+   538→                      <Button onClick={() => deleteTour(tour.packageId)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}>
+   539→                        <Trash2 className="size-3" />
+   540→                        Delete
+   541→                      </Button>
+   542→                    </div>
+   543→                  </CardContent>
+   544→                </Card>
+   545→              ))}
+   546→              {tourPackages.length === 0 && (
+   547→                <div className="col-span-full text-center py-12" style={{ color: "#64748b" }}>
+   548→                  No tour packages yet
+   549→                </div>
+   550→              )}
+   551→            </div>
+   552→          </TabsContent>
+   553→
+   554→          {/* Rewards Tab */}
+   555→          <TabsContent value="rewards">
+   556→            <div className="flex items-center justify-between mb-6">
+   557→              <h2 className="text-2xl font-bold text-white">Reward Management</h2>
+   558→              <Button onClick={openAddReward} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
+   559→                <Plus className="size-4" />
+   560→                <span className="hidden sm:inline">Add Reward</span>
+   561→              </Button>
+   562→            </div>
+   563→
+   564→            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+   565→              {rewards.map((reward) => (
+   566→                <Card key={reward.rewardId} className="border-0 rounded-2xl" style={{ background: "#252540" }}>
+   567→                  <CardContent className="p-5">
+   568→                    <div className="flex items-start justify-between mb-2">
+   569→                      <h3 className="text-lg font-bold text-white flex-1">{reward.namaReward}</h3>
+   570→                      <span
+   571→                        className="text-sm font-bold px-2.5 py-1 rounded-full flex-shrink-0 ml-2"
+   572→                        style={{ background: "rgba(13,148,136,0.2)", color: "#14b8a6" }}
+   573→                      >
+   574→                        {reward.poinNeeded.toLocaleString()} pts
+   575→                      </span>
+   576→                    </div>
+   577→                    <p style={{ color: "#94a3b8" }} className="text-sm mb-4">{reward.deskripsi}</p>
+   578→                    <div className="flex items-center gap-2">
+   579→                      <Button onClick={() => openEditReward(reward)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(14,165,233,0.3)", color: "#0ea5e9" }}>
+   580→                        <Pencil className="size-3" />
+   581→                        Edit
+   582→                      </Button>
+   583→                      <Button onClick={() => deleteReward(reward.rewardId)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}>
+   584→                        <Trash2 className="size-3" />
+   585→                        Delete
+   586→                      </Button>
+   587→                    </div>
+   588→                  </CardContent>
+   589→                </Card>
+   590→              ))}
+   591→              {rewards.length === 0 && (
+   592→                <div className="col-span-full text-center py-12" style={{ color: "#64748b" }}>
+   593→                  No rewards yet
+   594→                </div>
+   595→              )}
+   596→            </div>
+   597→          </TabsContent>
+   598→
+   599→          {/* Vouchers Tab */}
+   600→          <TabsContent value="vouchers">
+   601→            <div className="mb-6">
+   602→              <h2 className="text-2xl font-bold text-white mb-1">Voucher Verification</h2>
+   603→              <p style={{ color: "#94a3b8" }} className="text-sm">Verify pending reward redemptions from members</p>
+   604→            </div>
+   605→
+   606→            {vouchers.length === 0 ? (
+   607→              <Card className="border-0 rounded-2xl" style={{ background: "#252540" }}>
+   608→                <CardContent className="p-8 text-center">
+   609→                  <CheckCircle className="size-12 mx-auto mb-3" style={{ color: "#14b8a6" }} />
+   610→                  <p className="text-white font-medium mb-1">All Clear!</p>
+   611→                  <p style={{ color: "#94a3b8" }} className="text-sm">No pending vouchers to verify</p>
+   612→                </CardContent>
+   613→              </Card>
+   614→            ) : (
+   615→              <div className="space-y-3">
+   616→                {vouchers.map((v) => (
+   617→                  <Card key={v.transactionId} className="border-0 rounded-2xl" style={{ background: "#252540" }}>
+   618→                    <CardContent className="p-5">
+   619→                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+   620→                        <div className="flex-1">
+   621→                          <div className="flex items-center gap-2 mb-1">
+   622→                            <AlertCircle className="size-4" style={{ color: "#f59e0b" }} />
+   623→                            <span className="text-white font-medium">{v.description}</span>
+   624→                          </div>
+   625→                          <div className="flex items-center gap-4 text-sm" style={{ color: "#94a3b8" }}>
+   626→                            <span>Member: <strong style={{ color: "#14b8a6" }}>{v.memberId}</strong></span>
+   627→                            <span>Points: <strong style={{ color: "#f59e0b" }}>{v.amount}</strong></span>
+   628→                            <span className="flex items-center gap-1">
+   629→                              <Clock className="size-3" />
+   630→                              {formatDate(v.createdAt)}
+   631→                            </span>
+   632→                          </div>
+   633→                        </div>
+   634→                        <div className="flex items-center gap-2">
+   635→                          <Button
+   636→                            onClick={() => verifyVoucher(v.transactionId, "used")}
+   637→                            size="sm"
+   638→                            className="rounded-xl gap-1.5"
+   639→                            style={{ background: "#0d9488" }}
+   640→                          >
+   641→                            <CheckCircle className="size-3.5" />
+   642→                            Verify Used
+   643→                          </Button>
+   644→                          <Button
+   645→                            onClick={() => verifyVoucher(v.transactionId, "expired")}
+   646→                            size="sm"
+   647→                            variant="outline"
+   648→                            className="rounded-xl gap-1.5"
+   649→                            style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}
+   650→                          >
+   651→                            <X className="size-3.5" />
+   652→                            Mark Expired
+   653→                          </Button>
+   654→                        </div>
+   655→                      </div>
+   656→                    </CardContent>
+   657→                  </Card>
+   658→                ))}
+   659→              </div>
+   660→            )}
+   661→          </TabsContent>
+   662→        </Tabs>
+   663→      </main>
+   664→
+   665→      {/* Member Dialog */}
+   666→      {memberDialog.open && (
+   667→        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+   668→          <Card className="border-0 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ background: "#252540" }}>
+   669→            <CardContent className="p-6">
+   670→              <div className="flex items-center justify-between mb-6">
+   671→                <h3 className="text-xl font-bold text-white">
+   672→                  {memberDialog.mode === "add" ? "Add New Member" : "Edit Member"}
+   673→                </h3>
+   674→                <Button onClick={() => setMemberDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
+   675→                  <X className="size-5" />
+   676→                </Button>
+   677→              </div>
+   678→              <div className="space-y-4">
+   679→                <div>
+   680→                  <Label className="text-white text-sm">Member ID</Label>
+   681→                  <Input
+   682→                    value={memberForm.memberId}
+   683→                    onChange={(e) => setMemberForm({ ...memberForm, memberId: e.target.value })}
+   684→                    disabled={memberDialog.mode === "edit"}
+   685→                    className="rounded-xl mt-1"
+   686→                    style={inputStyle}
+   687→                    placeholder="e.g. BWT005"
+   688→                  />
+   689→                </div>
+   690→                <div>
+   691→                  <Label className="text-white text-sm">Name</Label>
+   692→                  <Input
+   693→                    value={memberForm.nama}
+   694→                    onChange={(e) => setMemberForm({ ...memberForm, nama: e.target.value })}
+   695→                    className="rounded-xl mt-1"
+   696→                    style={inputStyle}
+   697→                    placeholder="Full name"
+   698→                  />
+   699→                </div>
+   700→                <div>
+   701→                  <Label className="text-white text-sm">Email</Label>
+   702→                  <Input
+   703→                    value={memberForm.email}
+   704→                    onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
+   705→                    type="email"
+   706→                    className="rounded-xl mt-1"
+   707→                    style={inputStyle}
+   708→                    placeholder="email@example.com"
+   709→                  />
+   710→                </div>
+   711→                <div>
+   712→                  <Label className="text-white text-sm">WhatsApp Number</Label>
+   713→                  <Input
+   714→                    value={memberForm.noWhatsapp}
+   715→                    onChange={(e) => setMemberForm({ ...memberForm, noWhatsapp: e.target.value })}
+   716→                    className="rounded-xl mt-1"
+   717→                    style={inputStyle}
+   718→                    placeholder="6281234567890"
+   719→                  />
+   720→                </div>
+   721→                <div>
+   722→                  <Label className="text-white text-sm">
+   723→                    Password {memberDialog.mode === "edit" && "(leave blank to keep current)"}
+   724→                  </Label>
+   725→                  <Input
+   726→                    value={memberForm.password}
+   727→                    onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
+   728→                    type="password"
+   729→                    className="rounded-xl mt-1"
+   730→                    style={inputStyle}
+   731→                    placeholder={memberDialog.mode === "edit" ? "New password (optional)" : "Password"}
+   732→                  />
+   733→                </div>
+   734→                <div>
+   735→                  <Label className="text-white text-sm">Total Points</Label>
+   736→                  <Input
+   737→                    value={memberForm.totalPoin}
+   738→                    onChange={(e) => setMemberForm({ ...memberForm, totalPoin: parseInt(e.target.value) || 0 })}
+   739→                    type="number"
+   740→                    className="rounded-xl mt-1"
+   741→                    style={inputStyle}
+   742→                  />
+   743→                </div>
+   744→              </div>
+   745→              <div className="flex items-center gap-3 mt-6">
+   746→                <Button onClick={saveMember} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
+   747→                  <Save className="size-4" />
+   748→                  Save
+   749→                </Button>
+   750→                <Button onClick={() => setMemberDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
+   751→                  Cancel
+   752→                </Button>
+   753→              </div>
+   754→            </CardContent>
+   755→          </Card>
+   756→        </div>
+   757→      )}
+   758→
+   759→      {/* Tour Dialog */}
+   760→      {tourDialog.open && (
+   761→        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+   762→          <Card className="border-0 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ background: "#252540" }}>
+   763→            <CardContent className="p-6">
+   764→              <div className="flex items-center justify-between mb-6">
+   765→                <h3 className="text-xl font-bold text-white">
+   766→                  {tourDialog.mode === "add" ? "Add Tour Package" : "Edit Tour Package"}
+   767→                </h3>
+   768→                <Button onClick={() => setTourDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
+   769→                  <X className="size-5" />
+   770→                </Button>
+   771→              </div>
+   772→              <div className="space-y-4">
+   773→                <div>
+   774→                  <Label className="text-white text-sm">Tour Name</Label>
+   775→                  <Input
+   776→                    value={tourForm.namaTour}
+   777→                    onChange={(e) => setTourForm({ ...tourForm, namaTour: e.target.value })}
+   778→                    className="rounded-xl mt-1"
+   779→                    style={inputStyle}
+   780→                    placeholder="Package name"
+   781→                  />
+   782→                </div>
+   783→                <div>
+   784→                  <Label className="text-white text-sm">Description</Label>
+   785→                  <Textarea
+   786→                    value={tourForm.deskripsi}
+   787→                    onChange={(e) => setTourForm({ ...tourForm, deskripsi: e.target.value })}
+   788→                    className="rounded-xl mt-1 min-h-[80px]"
+   789→                    style={inputStyle}
+   790→                    placeholder="Tour description"
+   791→                  />
+   792→                </div>
+   793→                <div>
+   794→                  <Label className="text-white text-sm">Image URL</Label>
+   795→                  <Input
+   796→                    value={tourForm.gambarUrl}
+   797→                    onChange={(e) => setTourForm({ ...tourForm, gambarUrl: e.target.value })}
+   798→                    className="rounded-xl mt-1"
+   799→                    style={inputStyle}
+   800→                    placeholder="/images/package-a.jpg"
+   801→                  />
+   802→                </div>
+   803→                <div>
+   804→                  <Label className="text-white text-sm">Custom Link</Label>
+   805→                  <Input
+   806→                    value={tourForm.customLink}
+   807→                    onChange={(e) => setTourForm({ ...tourForm, customLink: e.target.value })}
+   808→                    className="rounded-xl mt-1"
+   809→                    style={inputStyle}
+   810→                    placeholder="https://wa.me/..."
+   811→                  />
+   812→                </div>
+   813→              </div>
+   814→              <div className="flex items-center gap-3 mt-6">
+   815→                <Button onClick={saveTour} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
+   816→                  <Save className="size-4" />
+   817→                  Save
+   818→                </Button>
+   819→                <Button onClick={() => setTourDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
+   820→                  Cancel
+   821→                </Button>
+   822→              </div>
+   823→            </CardContent>
+   824→          </Card>
+   825→        </div>
+   826→      )}
+   827→
+   828→      {/* Reward Dialog */}
+   829→      {rewardDialog.open && (
+   830→        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+   831→          <Card className="border-0 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ background: "#252540" }}>
+   832→            <CardContent className="p-6">
+   833→              <div className="flex items-center justify-between mb-6">
+   834→                <h3 className="text-xl font-bold text-white">
+   835→                  {rewardDialog.mode === "add" ? "Add Reward" : "Edit Reward"}
+   836→                </h3>
+   837→                <Button onClick={() => setRewardDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
+   838→                  <X className="size-5" />
+   839→                </Button>
+   840→              </div>
+   841→              <div className="space-y-4">
+   842→                <div>
+   843→                  <Label className="text-white text-sm">Reward Name</Label>
+   844→                  <Input
+   845→                    value={rewardForm.namaReward}
+   846→                    onChange={(e) => setRewardForm({ ...rewardForm, namaReward: e.target.value })}
+   847→                    className="rounded-xl mt-1"
+   848→                    style={inputStyle}
+   849→                    placeholder="Reward name"
+   850→                  />
+   851→                </div>
+   852→                <div>
+   853→                  <Label className="text-white text-sm">Points Needed</Label>
+   854→                  <Input
+   855→                    value={rewardForm.poinNeeded}
+   856→                    onChange={(e) => setRewardForm({ ...rewardForm, poinNeeded: parseInt(e.target.value) || 0 })}
+   857→                    type="number"
+   858→                    className="rounded-xl mt-1"
+   859→                    style={inputStyle}
+   860→                  />
+   861→                </div>
+   862→                <div>
+   863→                  <Label className="text-white text-sm">Description</Label>
+   864→                  <Textarea
+   865→                    value={rewardForm.deskripsi}
+   866→                    onChange={(e) => setRewardForm({ ...rewardForm, deskripsi: e.target.value })}
+   867→                    className="rounded-xl mt-1 min-h-[80px]"
+   868→                    style={inputStyle}
+   869→                    placeholder="Reward description"
+   870→                  />
+   871→                </div>
+   872→              </div>
+   873→              <div className="flex items-center gap-3 mt-6">
+   874→                <Button onClick={saveReward} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
+   875→                  <Save className="size-4" />
+   876→                  Save
+   877→                </Button>
+   878→                <Button onClick={() => setRewardDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
+   879→                  Cancel
+   880→                </Button>
+   881→              </div>
+   882→            </CardContent>
+   883→          </Card>
+   884→        </div>
+   885→      )}
+   886→    </div>
+   887→  );
+   888→}
+   889→

@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n";
 
 export default function MemberLoginPage() {
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [memberId, setMemberId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -31,14 +33,14 @@ export default function MemberLoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || t.membership.login.errorInvalid);
         return;
       }
 
       localStorage.setItem("bwt-member", JSON.stringify(data.member));
       router.push("/membership/dashboard");
     } catch {
-      setError("Network error. Please try again.");
+      setError(t.membership.login.errorInvalid);
     } finally {
       setLoading(false);
     }
@@ -46,12 +48,29 @@ export default function MemberLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#1a1a2e" }}>
+      {/* Language Switcher */}
+      <div className="fixed top-4 right-4 z-50 flex gap-1">
+        {(["id", "en", "zh"] as const).map((lang) => (
+          <button
+            key={lang}
+            onClick={() => setLanguage(lang)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              language === lang
+                ? "bg-teal-600 text-white shadow-lg"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            {lang === "id" ? "ID" : lang === "en" ? "EN" : "中文"}
+          </button>
+        ))}
+      </div>
+
       {/* Header */}
       <header className="py-4 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/membership" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
             <ArrowLeft className="size-5" />
-            <span className="text-sm">Back</span>
+            <span className="text-sm">{t.membership.login.backToMembership}</span>
           </Link>
           <Link href="/" className="flex items-center gap-2 text-white">
             <Crown className="size-5" style={{ color: "#14b8a6" }} />
@@ -70,8 +89,8 @@ export default function MemberLoginPage() {
             >
               <Crown className="size-10" style={{ color: "#14b8a6" }} />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Member Login</h1>
-            <p style={{ color: "#94a3b8" }}>Enter your Member ID and password</p>
+            <h1 className="text-3xl font-bold text-white mb-2">{t.membership.login.title}</h1>
+            <p style={{ color: "#94a3b8" }}>{t.membership.login.subtitle}</p>
           </div>
 
           <Card
@@ -82,12 +101,12 @@ export default function MemberLoginPage() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="memberId" className="text-white text-base">
-                    Member ID
+                    {t.membership.login.memberId}
                   </Label>
                   <Input
                     id="memberId"
                     type="text"
-                    placeholder="e.g. BWT001"
+                    placeholder={t.membership.login.memberIdPlaceholder}
                     value={memberId}
                     onChange={(e) => setMemberId(e.target.value)}
                     required
@@ -98,12 +117,12 @@ export default function MemberLoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-white text-base">
-                    Password
+                    {t.membership.login.password}
                   </Label>
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder={t.membership.login.passwordPlaceholder}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -130,12 +149,12 @@ export default function MemberLoginPage() {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Signing in...
+                      {t.membership.login.loading}
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
                       <LogIn className="size-5" />
-                      Sign In
+                      {t.membership.login.submit}
                     </div>
                   )}
                 </Button>
@@ -144,12 +163,15 @@ export default function MemberLoginPage() {
           </Card>
 
           <div className="text-center mt-6">
+            <p style={{ color: "#94a3b8" }} className="text-sm mb-2">
+              {t.membership.login.noAccount}
+            </p>
             <Link
               href="/membership/admin"
               className="text-sm hover:underline"
               style={{ color: "#0ea5e9" }}
             >
-              Admin Login →
+              {t.membership.login.register}
             </Link>
           </div>
         </div>

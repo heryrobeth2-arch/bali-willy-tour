@@ -4,60 +4,80 @@ import Link from "next/link";
 import { Crown, Star, Gift, MapPin, Utensils, ShoppingBag, ArrowRight, Sparkles, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-const partnerBenefits = [
-  {
-    icon: Utensils,
-    name: "Jimbaran Seafood Restaurant",
-    discount: "15% Off",
-    description: "Discount for all members on seafood dining",
-  },
-  {
-    icon: ShoppingBag,
-    name: "Bali Souvenir Center",
-    discount: "30% Off",
-    description: "Exclusive discount on souvenirs & handicrafts",
-  },
-  {
-    icon: Utensils,
-    name: "Seminyak Beach Club",
-    discount: "10% Off",
-    description: "Special rate on food and beverages",
-  },
-  {
-    icon: ShoppingBag,
-    name: "Ubud Art Market Partner",
-    discount: "20% Off",
-    description: "Member discount on art & craft items",
-  },
-];
-
-const membershipFeatures = [
-  {
-    icon: Star,
-    title: "Earn Points",
-    description: "Get points on every tour booking. More tours, more rewards!",
-  },
-  {
-    icon: Gift,
-    title: "Redeem Rewards",
-    description: "Exchange points for free tours, discounts, and exclusive vouchers.",
-  },
-  {
-    icon: Shield,
-    title: "Digital Card",
-    description: "Carry your membership digitally with QR code for easy verification.",
-  },
-  {
-    icon: Users,
-    title: "Partner Perks",
-    description: "Enjoy special discounts at restaurants, spas, and souvenir shops.",
-  },
-];
+import { useLanguage } from "@/lib/i18n";
 
 export default function MembershipPage() {
+  const { language, setLanguage, t } = useLanguage();
+
+  const partnerBenefits = [
+    {
+      icon: Utensils,
+      name: "Jimbaran Seafood Restaurant",
+      discount: "15% Off",
+      description: t.membership.partners.restaurant,
+    },
+    {
+      icon: ShoppingBag,
+      name: "Bali Souvenir Center",
+      discount: "30% Off",
+      description: t.membership.partners.shop,
+    },
+    {
+      icon: Utensils,
+      name: "Seminyak Beach Club",
+      discount: "10% Off",
+      description: t.membership.partners.restaurant,
+    },
+    {
+      icon: ShoppingBag,
+      name: "Ubud Art Market Partner",
+      discount: "20% Off",
+      description: t.membership.partners.shop,
+    },
+  ];
+
+  const membershipFeatures = [
+    {
+      icon: Star,
+      title: t.membership.features.feature1Title,
+      description: t.membership.features.feature1Desc,
+    },
+    {
+      icon: Gift,
+      title: t.membership.features.feature2Title,
+      description: t.membership.features.feature2Desc,
+    },
+    {
+      icon: Shield,
+      title: t.membership.features.feature3Title,
+      description: t.membership.features.feature3Desc,
+    },
+    {
+      icon: Users,
+      title: t.membership.features.feature4Title,
+      description: t.membership.features.feature4Desc,
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#1a1a2e" }}>
+      {/* Language Switcher */}
+      <div className="fixed top-4 right-4 z-50 flex gap-1">
+        {(["id", "en", "zh"] as const).map((lang) => (
+          <button
+            key={lang}
+            onClick={() => setLanguage(lang)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              language === lang
+                ? "bg-teal-600 text-white shadow-lg"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            {lang === "id" ? "ID" : lang === "en" ? "EN" : "中文"}
+          </button>
+        ))}
+      </div>
+
       {/* Header Bar */}
       <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: "rgba(26,26,46,0.9)", borderColor: "rgba(255,255,255,0.1)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,14 +119,14 @@ export default function MembershipPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6" style={{ background: "rgba(13,148,136,0.2)", color: "#14b8a6", border: "1px solid rgba(13,148,136,0.3)" }}>
             <Sparkles className="size-4" />
-            Bali Willy Tour Loyalty Program
+            {t.membership.hero.badge}
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
-            Your Tropical <span style={{ color: "#14b8a6" }}>Rewards</span> <br className="hidden sm:block" />
-            Start Here
+            {t.membership.hero.title} <span style={{ color: "#14b8a6" }}>{t.membership.hero.titleHighlight}</span> <br className="hidden sm:block" />
+            {t.membership.hero.subtitle}
           </h1>
           <p className="text-lg sm:text-xl max-w-2xl mx-auto mb-10" style={{ color: "#94a3b8" }}>
-            Join our membership and earn points on every tour. Redeem rewards, enjoy partner discounts, and get exclusive perks across Bali.
+            {t.membership.hero.description}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/membership/login">
@@ -116,7 +136,7 @@ export default function MembershipPage() {
                 style={{ background: "linear-gradient(135deg, #0d9488, #14b8a6)" }}
               >
                 <Crown className="size-5 mr-2" />
-                Login as Member
+                {t.membership.hero.ctaLogin}
               </Button>
             </Link>
             <Link href="/membership/admin">
@@ -126,7 +146,7 @@ export default function MembershipPage() {
                 className="rounded-full text-lg px-8 py-6"
                 style={{ borderColor: "rgba(255,255,255,0.3)", color: "#e2e8f0" }}
               >
-                Admin Login
+                {t.membership.hero.ctaLearnMore}
                 <ArrowRight className="size-5 ml-2" />
               </Button>
             </Link>
@@ -138,11 +158,15 @@ export default function MembershipPage() {
       <section className="py-16 sm:py-24" style={{ background: "#1a1a2e" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: "rgba(13,148,136,0.2)", color: "#14b8a6", border: "1px solid rgba(13,148,136,0.3)" }}>
+              <Sparkles className="size-4" />
+              {t.membership.features.badge}
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Why Join <span style={{ color: "#14b8a6" }}>BWT Membership</span>?
+              {t.membership.features.title}
             </h2>
             <p style={{ color: "#94a3b8" }} className="text-lg max-w-2xl mx-auto">
-              Every tour you take brings you closer to amazing rewards. No complicated tiers — just points and perks.
+              {t.membership.features.description}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -172,15 +196,20 @@ export default function MembershipPage() {
       <section className="py-16 sm:py-24" style={{ background: "#16213e" }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: "rgba(14,165,233,0.2)", color: "#0ea5e9", border: "1px solid rgba(14,165,233,0.3)" }}>
+              <MapPin className="size-4" />
+              {t.membership.howItWorks.badge}
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              How It <span style={{ color: "#0ea5e9" }}>Works</span>
+              {t.membership.howItWorks.title}
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: "1", title: "Book a Tour", desc: "Take any Bali Willy Tour and automatically earn loyalty points.", icon: MapPin },
-              { step: "2", title: "Collect Points", desc: "Points are added to your account after each completed tour.", icon: Star },
-              { step: "3", title: "Redeem Rewards", desc: "Use your points for free tours, discounts, and partner perks.", icon: Gift },
+              { step: "1", title: t.membership.howItWorks.step1Title, desc: t.membership.howItWorks.step1Desc, icon: MapPin },
+              { step: "2", title: t.membership.howItWorks.step2Title, desc: t.membership.howItWorks.step2Desc, icon: Star },
+              { step: "3", title: t.membership.howItWorks.step3Title, desc: t.membership.howItWorks.step3Desc, icon: Gift },
+              { step: "4", title: t.membership.howItWorks.step4Title, desc: t.membership.howItWorks.step4Desc, icon: Crown },
             ].map((item) => (
               <div key={item.step} className="text-center">
                 <div
@@ -201,11 +230,15 @@ export default function MembershipPage() {
       <section className="py-16 sm:py-24" style={{ background: "#1a1a2e" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4" style={{ background: "rgba(13,148,136,0.2)", color: "#14b8a6", border: "1px solid rgba(13,148,136,0.3)" }}>
+              <Sparkles className="size-4" />
+              {t.membership.partners.badge}
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Partner <span style={{ color: "#14b8a6" }}>Benefits</span>
+              {t.membership.partners.title}
             </h2>
             <p style={{ color: "#94a3b8" }} className="text-lg max-w-2xl mx-auto">
-              Enjoy exclusive discounts at our partner restaurants, shops, and attractions across Bali.
+              {t.membership.partners.description}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -242,10 +275,10 @@ export default function MembershipPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Crown className="size-16 text-white mx-auto mb-6 opacity-90" />
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to Start Earning?
+            {t.membership.hero.ctaLogin}
           </h2>
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Join Bali Willy Tour Membership today and turn your Bali adventures into amazing rewards.
+            {t.membership.hero.description}
           </p>
           <Link href="/membership/login">
             <Button
@@ -254,7 +287,7 @@ export default function MembershipPage() {
               style={{ background: "white", color: "#0d9488" }}
             >
               <Crown className="size-5 mr-2" />
-              Login to Your Account
+              {t.membership.hero.ctaLogin}
             </Button>
           </Link>
         </div>

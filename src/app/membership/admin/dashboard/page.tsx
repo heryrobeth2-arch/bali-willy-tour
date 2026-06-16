@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/lib/i18n";
 
 // Types
 interface Member {
@@ -53,6 +54,7 @@ interface VoucherTransaction {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState("members");
 
   // Data states
@@ -164,7 +166,7 @@ export default function AdminDashboardPage() {
           showNotification("error", data.error || "Failed to add member");
           return;
         }
-        showNotification("success", "Member added successfully!");
+        showNotification("success", t.membership.admin.addMember);
       } else {
         const updateData: Record<string, unknown> = {
           nama: memberForm.nama,
@@ -182,7 +184,7 @@ export default function AdminDashboardPage() {
           showNotification("error", "Failed to update member");
           return;
         }
-        showNotification("success", "Member updated successfully!");
+        showNotification("success", t.membership.admin.editMember);
       }
       setMemberDialog({ open: false, mode: "add", data: null });
       fetchData();
@@ -192,14 +194,14 @@ export default function AdminDashboardPage() {
   };
 
   const deleteMember = async (memberId: string) => {
-    if (!confirm("Are you sure you want to delete this member?")) return;
+    if (!confirm(t.membership.admin.confirmDelete)) return;
     try {
       const res = await fetch(`/api/members/${memberId}`, { method: "DELETE" });
       if (!res.ok) {
         showNotification("error", "Failed to delete member");
         return;
       }
-      showNotification("success", "Member deleted successfully!");
+      showNotification("success", t.membership.admin.deleteMember);
       fetchData();
     } catch {
       showNotification("error", "Network error");
@@ -234,7 +236,7 @@ export default function AdminDashboardPage() {
           showNotification("error", "Failed to add tour package");
           return;
         }
-        showNotification("success", "Tour package added!");
+        showNotification("success", t.membership.admin.addTour);
       } else {
         const res = await fetch(`/api/tour-packages/${tourDialog.data!.packageId}`, {
           method: "PUT",
@@ -245,7 +247,7 @@ export default function AdminDashboardPage() {
           showNotification("error", "Failed to update tour package");
           return;
         }
-        showNotification("success", "Tour package updated!");
+        showNotification("success", t.membership.admin.editTour);
       }
       setTourDialog({ open: false, mode: "add", data: null });
       fetchData();
@@ -255,14 +257,14 @@ export default function AdminDashboardPage() {
   };
 
   const deleteTour = async (id: string) => {
-    if (!confirm("Delete this tour package?")) return;
+    if (!confirm(t.membership.admin.confirmDelete)) return;
     try {
       const res = await fetch(`/api/tour-packages/${id}`, { method: "DELETE" });
       if (!res.ok) {
         showNotification("error", "Failed to delete");
         return;
       }
-      showNotification("success", "Tour package deleted!");
+      showNotification("success", t.membership.admin.deleteMember);
       fetchData();
     } catch {
       showNotification("error", "Network error");
@@ -296,7 +298,7 @@ export default function AdminDashboardPage() {
           showNotification("error", "Failed to add reward");
           return;
         }
-        showNotification("success", "Reward added!");
+        showNotification("success", t.membership.admin.addReward);
       } else {
         const res = await fetch(`/api/rewards/${rewardDialog.data!.rewardId}`, {
           method: "PUT",
@@ -307,7 +309,7 @@ export default function AdminDashboardPage() {
           showNotification("error", "Failed to update reward");
           return;
         }
-        showNotification("success", "Reward updated!");
+        showNotification("success", t.membership.admin.editReward);
       }
       setRewardDialog({ open: false, mode: "add", data: null });
       fetchData();
@@ -317,14 +319,14 @@ export default function AdminDashboardPage() {
   };
 
   const deleteReward = async (id: string) => {
-    if (!confirm("Delete this reward?")) return;
+    if (!confirm(t.membership.admin.confirmDelete)) return;
     try {
       const res = await fetch(`/api/rewards/${id}`, { method: "DELETE" });
       if (!res.ok) {
         showNotification("error", "Failed to delete");
         return;
       }
-      showNotification("success", "Reward deleted!");
+      showNotification("success", t.membership.admin.deleteMember);
       fetchData();
     } catch {
       showNotification("error", "Network error");
@@ -343,7 +345,7 @@ export default function AdminDashboardPage() {
         showNotification("error", "Failed to verify voucher");
         return;
       }
-      showNotification("success", `Voucher marked as ${status}!`);
+      showNotification("success", status === "used" ? t.membership.admin.verifySuccess : t.membership.admin.rejectSuccess);
       fetchData();
     } catch {
       showNotification("error", "Network error");
@@ -372,7 +374,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#1a1a2e" }}>
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-sky-500/30 border-t-sky-500 rounded-full animate-spin mx-auto mb-4" />
-          <p style={{ color: "#94a3b8" }}>Loading admin panel...</p>
+          <p style={{ color: "#94a3b8" }}>{t.membership.admin.dashboardTitle}...</p>
         </div>
       </div>
     );
@@ -382,6 +384,23 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#1a1a2e" }}>
+      {/* Language Switcher */}
+      <div className="fixed top-4 right-4 z-50 flex gap-1">
+        {(["id", "en", "zh"] as const).map((lang) => (
+          <button
+            key={lang}
+            onClick={() => setLanguage(lang)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              language === lang
+                ? "bg-sky-600 text-white shadow-lg"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            {lang === "id" ? "ID" : lang === "en" ? "EN" : "中文"}
+          </button>
+        ))}
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: "rgba(26,26,46,0.95)", borderColor: "rgba(255,255,255,0.1)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -398,7 +417,7 @@ export default function AdminDashboardPage() {
               </Link>
               <Button onClick={handleLogout} variant="ghost" className="rounded-full" style={{ color: "#94a3b8" }}>
                 <LogOut className="size-4 mr-2" />
-                Logout
+                {t.membership.admin.logout}
               </Button>
             </div>
           </div>
@@ -424,31 +443,31 @@ export default function AdminDashboardPage() {
           <TabsList className="mb-6 w-full sm:w-auto rounded-xl p-1" style={{ background: "#252540" }}>
             <TabsTrigger value="members" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
               <Users className="size-4" />
-              <span className="hidden sm:inline">Members</span>
+              <span className="hidden sm:inline">{t.membership.admin.tabMembers}</span>
             </TabsTrigger>
             <TabsTrigger value="tours" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
               <MapPin className="size-4" />
-              <span className="hidden sm:inline">Tour Packages</span>
+              <span className="hidden sm:inline">{t.membership.admin.tabTours}</span>
             </TabsTrigger>
             <TabsTrigger value="rewards" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
               <Gift className="size-4" />
-              <span className="hidden sm:inline">Rewards</span>
+              <span className="hidden sm:inline">{t.membership.admin.tabRewards}</span>
             </TabsTrigger>
             <TabsTrigger value="vouchers" className="rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white text-gray-400 gap-1.5">
               <CheckCircle className="size-4" />
-              <span className="hidden sm:inline">Vouchers</span>
+              <span className="hidden sm:inline">{t.membership.admin.tabVouchers}</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Members Tab */}
           <TabsContent value="members">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-white">Member Management</h2>
+              <h2 className="text-2xl font-bold text-white">{t.membership.admin.tabMembers}</h2>
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <div className="relative flex-1 sm:flex-initial">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4" style={{ color: "#64748b" }} />
                   <Input
-                    placeholder="Search members..."
+                    placeholder={`${t.membership.admin.tabMembers}...`}
                     value={memberSearch}
                     onChange={(e) => setMemberSearch(e.target.value)}
                     className="rounded-xl pl-9 h-10"
@@ -457,7 +476,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <Button onClick={openAddMember} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
                   <Plus className="size-4" />
-                  <span className="hidden sm:inline">Add</span>
+                  <span className="hidden sm:inline">{t.membership.admin.addMember}</span>
                 </Button>
               </div>
             </div>
@@ -467,11 +486,11 @@ export default function AdminDashboardPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ background: "#1a1a2e" }}>
-                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>ID</th>
-                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Name</th>
-                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell" style={{ color: "#94a3b8" }}>Email</th>
-                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Points</th>
-                      <th className="text-right px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>Actions</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>{t.membership.admin.memberId}</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>{t.membership.admin.nama}</th>
+                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell" style={{ color: "#94a3b8" }}>{t.membership.admin.email}</th>
+                      <th className="text-left px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>{t.membership.admin.points}</th>
+                      <th className="text-right px-4 py-3 font-medium" style={{ color: "#94a3b8" }}>{t.membership.admin.actions}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -509,10 +528,10 @@ export default function AdminDashboardPage() {
           {/* Tour Packages Tab */}
           <TabsContent value="tours">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Tour Package Management</h2>
+              <h2 className="text-2xl font-bold text-white">{t.membership.admin.tabTours}</h2>
               <Button onClick={openAddTour} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
                 <Plus className="size-4" />
-                <span className="hidden sm:inline">Add Package</span>
+                <span className="hidden sm:inline">{t.membership.admin.addTour}</span>
               </Button>
             </div>
 
@@ -528,16 +547,16 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs truncate mb-3" style={{ color: "#64748b" }}>
-                      Link: {tour.customLink}
+                      {t.membership.admin.customLink}: {tour.customLink}
                     </p>
                     <div className="flex items-center gap-2">
                       <Button onClick={() => openEditTour(tour)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(14,165,233,0.3)", color: "#0ea5e9" }}>
                         <Pencil className="size-3" />
-                        Edit
+                        {t.membership.admin.editTour}
                       </Button>
                       <Button onClick={() => deleteTour(tour.packageId)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}>
                         <Trash2 className="size-3" />
-                        Delete
+                        {t.membership.admin.delete}
                       </Button>
                     </div>
                   </CardContent>
@@ -554,10 +573,10 @@ export default function AdminDashboardPage() {
           {/* Rewards Tab */}
           <TabsContent value="rewards">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Reward Management</h2>
+              <h2 className="text-2xl font-bold text-white">{t.membership.admin.tabRewards}</h2>
               <Button onClick={openAddReward} className="rounded-xl gap-1.5" style={{ background: "#0d9488" }}>
                 <Plus className="size-4" />
-                <span className="hidden sm:inline">Add Reward</span>
+                <span className="hidden sm:inline">{t.membership.admin.addReward}</span>
               </Button>
             </div>
 
@@ -578,11 +597,11 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center gap-2">
                       <Button onClick={() => openEditReward(reward)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(14,165,233,0.3)", color: "#0ea5e9" }}>
                         <Pencil className="size-3" />
-                        Edit
+                        {t.membership.admin.editReward}
                       </Button>
                       <Button onClick={() => deleteReward(reward.rewardId)} variant="outline" size="sm" className="rounded-xl flex-1 gap-1.5" style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}>
                         <Trash2 className="size-3" />
-                        Delete
+                        {t.membership.admin.delete}
                       </Button>
                     </div>
                   </CardContent>
@@ -599,16 +618,14 @@ export default function AdminDashboardPage() {
           {/* Vouchers Tab */}
           <TabsContent value="vouchers">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-1">Voucher Verification</h2>
-              <p style={{ color: "#94a3b8" }} className="text-sm">Verify pending reward redemptions from members</p>
+              <h2 className="text-2xl font-bold text-white mb-1">{t.membership.admin.pendingVouchers}</h2>
             </div>
 
             {vouchers.length === 0 ? (
               <Card className="border-0 rounded-2xl" style={{ background: "#252540" }}>
                 <CardContent className="p-8 text-center">
                   <CheckCircle className="size-12 mx-auto mb-3" style={{ color: "#14b8a6" }} />
-                  <p className="text-white font-medium mb-1">All Clear!</p>
-                  <p style={{ color: "#94a3b8" }} className="text-sm">No pending vouchers to verify</p>
+                  <p style={{ color: "#94a3b8" }} className="text-sm">{t.membership.admin.noPending}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -623,8 +640,8 @@ export default function AdminDashboardPage() {
                             <span className="text-white font-medium">{v.description}</span>
                           </div>
                           <div className="flex items-center gap-4 text-sm" style={{ color: "#94a3b8" }}>
-                            <span>Member: <strong style={{ color: "#14b8a6" }}>{v.memberId}</strong></span>
-                            <span>Points: <strong style={{ color: "#f59e0b" }}>{v.amount}</strong></span>
+                            <span>{t.membership.admin.member}: <strong style={{ color: "#14b8a6" }}>{v.memberId}</strong></span>
+                            <span>{t.membership.admin.amount}: <strong style={{ color: "#f59e0b" }}>{v.amount}</strong></span>
                             <span className="flex items-center gap-1">
                               <Clock className="size-3" />
                               {formatDate(v.createdAt)}
@@ -639,7 +656,7 @@ export default function AdminDashboardPage() {
                             style={{ background: "#0d9488" }}
                           >
                             <CheckCircle className="size-3.5" />
-                            Verify Used
+                            {t.membership.admin.verify}
                           </Button>
                           <Button
                             onClick={() => verifyVoucher(v.transactionId, "expired")}
@@ -649,7 +666,7 @@ export default function AdminDashboardPage() {
                             style={{ borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}
                           >
                             <X className="size-3.5" />
-                            Mark Expired
+                            {t.membership.admin.reject}
                           </Button>
                         </div>
                       </div>
@@ -669,7 +686,7 @@ export default function AdminDashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white">
-                  {memberDialog.mode === "add" ? "Add New Member" : "Edit Member"}
+                  {memberDialog.mode === "add" ? t.membership.admin.addMember : t.membership.admin.editMember}
                 </h3>
                 <Button onClick={() => setMemberDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
                   <X className="size-5" />
@@ -677,7 +694,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-white text-sm">Member ID</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.memberId}</Label>
                   <Input
                     value={memberForm.memberId}
                     onChange={(e) => setMemberForm({ ...memberForm, memberId: e.target.value })}
@@ -688,7 +705,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Name</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.nama}</Label>
                   <Input
                     value={memberForm.nama}
                     onChange={(e) => setMemberForm({ ...memberForm, nama: e.target.value })}
@@ -698,7 +715,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Email</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.email}</Label>
                   <Input
                     value={memberForm.email}
                     onChange={(e) => setMemberForm({ ...memberForm, email: e.target.value })}
@@ -709,7 +726,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">WhatsApp Number</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.whatsapp}</Label>
                   <Input
                     value={memberForm.noWhatsapp}
                     onChange={(e) => setMemberForm({ ...memberForm, noWhatsapp: e.target.value })}
@@ -719,20 +736,18 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">
-                    Password {memberDialog.mode === "edit" && "(leave blank to keep current)"}
-                  </Label>
+                  <Label className="text-white text-sm">{t.membership.admin.password}</Label>
                   <Input
                     value={memberForm.password}
                     onChange={(e) => setMemberForm({ ...memberForm, password: e.target.value })}
                     type="password"
                     className="rounded-xl mt-1"
                     style={inputStyle}
-                    placeholder={memberDialog.mode === "edit" ? "New password (optional)" : "Password"}
+                    placeholder={memberDialog.mode === "edit" ? "New password (optional)" : t.membership.admin.password}
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Total Points</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.points}</Label>
                   <Input
                     value={memberForm.totalPoin}
                     onChange={(e) => setMemberForm({ ...memberForm, totalPoin: parseInt(e.target.value) || 0 })}
@@ -745,10 +760,10 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-3 mt-6">
                 <Button onClick={saveMember} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
                   <Save className="size-4" />
-                  Save
+                  {t.membership.admin.save}
                 </Button>
                 <Button onClick={() => setMemberDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
-                  Cancel
+                  {t.membership.admin.cancel}
                 </Button>
               </div>
             </CardContent>
@@ -763,7 +778,7 @@ export default function AdminDashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white">
-                  {tourDialog.mode === "add" ? "Add Tour Package" : "Edit Tour Package"}
+                  {tourDialog.mode === "add" ? t.membership.admin.addTour : t.membership.admin.editTour}
                 </h3>
                 <Button onClick={() => setTourDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
                   <X className="size-5" />
@@ -771,7 +786,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-white text-sm">Tour Name</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.tourName}</Label>
                   <Input
                     value={tourForm.namaTour}
                     onChange={(e) => setTourForm({ ...tourForm, namaTour: e.target.value })}
@@ -781,7 +796,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Description</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.description}</Label>
                   <Textarea
                     value={tourForm.deskripsi}
                     onChange={(e) => setTourForm({ ...tourForm, deskripsi: e.target.value })}
@@ -791,7 +806,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Image URL</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.imageUrl}</Label>
                   <Input
                     value={tourForm.gambarUrl}
                     onChange={(e) => setTourForm({ ...tourForm, gambarUrl: e.target.value })}
@@ -801,7 +816,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Custom Link</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.customLink}</Label>
                   <Input
                     value={tourForm.customLink}
                     onChange={(e) => setTourForm({ ...tourForm, customLink: e.target.value })}
@@ -814,10 +829,10 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-3 mt-6">
                 <Button onClick={saveTour} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
                   <Save className="size-4" />
-                  Save
+                  {t.membership.admin.save}
                 </Button>
                 <Button onClick={() => setTourDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
-                  Cancel
+                  {t.membership.admin.cancel}
                 </Button>
               </div>
             </CardContent>
@@ -832,7 +847,7 @@ export default function AdminDashboardPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white">
-                  {rewardDialog.mode === "add" ? "Add Reward" : "Edit Reward"}
+                  {rewardDialog.mode === "add" ? t.membership.admin.addReward : t.membership.admin.editReward}
                 </h3>
                 <Button onClick={() => setRewardDialog({ open: false, mode: "add", data: null })} variant="ghost" size="icon" style={{ color: "#94a3b8" }}>
                   <X className="size-5" />
@@ -840,7 +855,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label className="text-white text-sm">Reward Name</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.rewardName}</Label>
                   <Input
                     value={rewardForm.namaReward}
                     onChange={(e) => setRewardForm({ ...rewardForm, namaReward: e.target.value })}
@@ -850,7 +865,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Points Needed</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.pointsNeeded}</Label>
                   <Input
                     value={rewardForm.poinNeeded}
                     onChange={(e) => setRewardForm({ ...rewardForm, poinNeeded: parseInt(e.target.value) || 0 })}
@@ -860,7 +875,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <Label className="text-white text-sm">Description</Label>
+                  <Label className="text-white text-sm">{t.membership.admin.description}</Label>
                   <Textarea
                     value={rewardForm.deskripsi}
                     onChange={(e) => setRewardForm({ ...rewardForm, deskripsi: e.target.value })}
@@ -873,10 +888,10 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-3 mt-6">
                 <Button onClick={saveReward} className="rounded-xl flex-1 gap-1.5" style={{ background: "#0d9488" }}>
                   <Save className="size-4" />
-                  Save
+                  {t.membership.admin.save}
                 </Button>
                 <Button onClick={() => setRewardDialog({ open: false, mode: "add", data: null })} variant="outline" className="rounded-xl" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}>
-                  Cancel
+                  {t.membership.admin.cancel}
                 </Button>
               </div>
             </CardContent>

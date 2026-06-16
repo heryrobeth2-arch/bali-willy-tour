@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { QRCodeSVG } from "qrcode.react";
+import { useLanguage } from "@/lib/i18n";
 
 interface Transaction {
   transactionId: string;
@@ -38,6 +39,7 @@ interface MemberData {
 
 export default function MemberDashboardPage() {
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
   const [member, setMember] = useState<MemberData | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,19 +103,19 @@ export default function MemberDashboardPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setRedeemMessage({ type: "error", text: data.error || "Redemption failed" });
+        setRedeemMessage({ type: "error", text: data.error || t.membership.dashboard.redeemError });
         return;
       }
 
       setRedeemMessage({
         type: "success",
-        text: `Successfully redeemed ${reward.namaReward}! Waiting for admin verification.`,
+        text: t.membership.dashboard.redeemSuccess,
       });
 
       // Refresh data
       await loadData();
     } catch {
-      setRedeemMessage({ type: "error", text: "Network error. Please try again." });
+      setRedeemMessage({ type: "error", text: t.membership.dashboard.redeemError });
     } finally {
       setRedeemingId(null);
     }
@@ -141,12 +143,21 @@ export default function MemberDashboardPage() {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "used": return t.membership.dashboard.used;
+      case "pending": return t.membership.dashboard.pending;
+      case "expired": return t.membership.dashboard.expired;
+      default: return status;
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#1a1a2e" }}>
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin mx-auto mb-4" />
-          <p style={{ color: "#94a3b8" }}>Loading your dashboard...</p>
+          <p style={{ color: "#94a3b8" }}>{t.membership.dashboard.title}...</p>
         </div>
       </div>
     );
@@ -160,6 +171,23 @@ export default function MemberDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#1a1a2e" }}>
+      {/* Language Switcher */}
+      <div className="fixed top-4 right-4 z-50 flex gap-1">
+        {(["id", "en", "zh"] as const).map((lang) => (
+          <button
+            key={lang}
+            onClick={() => setLanguage(lang)}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+              language === lang
+                ? "bg-teal-600 text-white shadow-lg"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            {lang === "id" ? "ID" : lang === "en" ? "EN" : "中文"}
+          </button>
+        ))}
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: "rgba(26,26,46,0.95)", borderColor: "rgba(255,255,255,0.1)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,7 +203,7 @@ export default function MemberDashboardPage() {
               style={{ color: "#94a3b8" }}
             >
               <LogOut className="size-4 mr-2" />
-              Logout
+              {t.membership.dashboard.logout}
             </Button>
           </div>
         </div>
@@ -185,9 +213,9 @@ export default function MemberDashboardPage() {
         {/* Welcome & Stats */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-            Welcome, <span style={{ color: "#14b8a6" }}>{member.nama}</span>!
+            {t.membership.dashboard.title}, <span style={{ color: "#14b8a6" }}>{member.nama}</span>!
           </h1>
-          <p style={{ color: "#94a3b8" }}>Member ID: {member.memberId}</p>
+          <p style={{ color: "#94a3b8" }}>{t.membership.login.memberId}: {member.memberId}</p>
         </div>
 
         {/* Stats Cards */}
@@ -199,7 +227,7 @@ export default function MemberDashboardPage() {
                   <Star className="size-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-sm">Total Points</p>
+                  <p className="text-white/80 text-sm">{t.membership.dashboard.totalPoints}</p>
                   <p className="text-2xl font-bold text-white">{member.totalPoin.toLocaleString()}</p>
                 </div>
               </div>
@@ -212,7 +240,7 @@ export default function MemberDashboardPage() {
                   <Wallet className="size-5" style={{ color: "#0ea5e9" }} />
                 </div>
                 <div>
-                  <p style={{ color: "#94a3b8" }} className="text-sm">Points Expiry</p>
+                  <p style={{ color: "#94a3b8" }} className="text-sm">{t.membership.dashboard.activePoints}</p>
                   <p className="text-xl font-bold text-white">31 Dec 2026</p>
                 </div>
               </div>
@@ -225,7 +253,7 @@ export default function MemberDashboardPage() {
                   <History className="size-5" style={{ color: "#f59e0b" }} />
                 </div>
                 <div>
-                  <p style={{ color: "#94a3b8" }} className="text-sm">Transactions</p>
+                  <p style={{ color: "#94a3b8" }} className="text-sm">{t.membership.dashboard.transactions}</p>
                   <p className="text-xl font-bold text-white">{member.transactions.length}</p>
                 </div>
               </div>
@@ -249,15 +277,15 @@ export default function MemberDashboardPage() {
                   className="text-xs px-3 py-1 rounded-full font-medium"
                   style={{ background: "rgba(13,148,136,0.3)", color: "#14b8a6" }}
                 >
-                  MEMBER
+                  {t.membership.dashboard.member}
                 </span>
               </div>
 
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <p className="text-white/60 text-sm mb-1">Member Name</p>
+                  <p className="text-white/60 text-sm mb-1">{t.membership.admin.nama}</p>
                   <p className="text-xl font-bold text-white mb-4">{member.nama}</p>
-                  <p className="text-white/60 text-sm mb-1">Member ID</p>
+                  <p className="text-white/60 text-sm mb-1">{t.membership.login.memberId}</p>
                   <p className="text-2xl font-bold tracking-wider" style={{ color: "#14b8a6" }}>
                     {member.memberId}
                   </p>
@@ -283,7 +311,7 @@ export default function MemberDashboardPage() {
                   <div className="flex items-center gap-2">
                     <CreditCard className="size-4" style={{ color: "#94a3b8" }} />
                     <span style={{ color: "#94a3b8" }} className="text-sm">
-                      {member.totalPoin.toLocaleString()} Points
+                      {member.totalPoin.toLocaleString()} {t.membership.dashboard.points}
                     </span>
                   </div>
                   <span style={{ color: "#94a3b8" }} className="text-sm">
@@ -300,13 +328,13 @@ export default function MemberDashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <Clock className="size-5" style={{ color: "#0ea5e9" }} />
-                  Recent Transactions
+                  {t.membership.dashboard.pointHistory}
                 </h2>
               </div>
 
               {member.transactions.length === 0 ? (
                 <p style={{ color: "#94a3b8" }} className="text-center py-8">
-                  No transactions yet
+                  {t.membership.dashboard.noTransactions}
                 </p>
               ) : (
                 <div className="space-y-3 max-h-80 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "#374151 transparent" }}>
@@ -338,7 +366,7 @@ export default function MemberDashboardPage() {
                             color: getStatusColor(tx.status),
                           }}
                         >
-                          {tx.status}
+                          {getStatusText(tx.status)}
                         </span>
                       </div>
                     </div>
@@ -358,7 +386,7 @@ export default function MemberDashboardPage() {
                   ) : (
                     <ChevronDown className="size-4 mr-1" />
                   )}
-                  {showAllTransactions ? "Show Less" : "Show All"}
+                  {showAllTransactions ? t.membership.dashboard.showLess : t.membership.dashboard.showAll}
                 </Button>
               )}
             </CardContent>
@@ -384,72 +412,78 @@ export default function MemberDashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Gift className="size-5" style={{ color: "#f59e0b" }} />
-              Available Rewards
+              {t.membership.dashboard.availableRewards}
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rewards.map((reward) => {
-              const canRedeem = member.totalPoin >= reward.poinNeeded;
-              return (
-                <Card
-                  key={reward.rewardId}
-                  className="border-0 rounded-2xl transition-transform hover:scale-[1.02]"
-                  style={{ background: "#252540" }}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-bold text-white flex-1">{reward.namaReward}</h3>
-                      <span
-                        className="text-sm font-bold px-2.5 py-1 rounded-full flex-shrink-0 ml-2"
+          {rewards.length === 0 ? (
+            <p style={{ color: "#94a3b8" }} className="text-center py-8">
+              {t.membership.dashboard.noRewards}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rewards.map((reward) => {
+                const canRedeem = member.totalPoin >= reward.poinNeeded;
+                return (
+                  <Card
+                    key={reward.rewardId}
+                    className="border-0 rounded-2xl transition-transform hover:scale-[1.02]"
+                    style={{ background: "#252540" }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-bold text-white flex-1">{reward.namaReward}</h3>
+                        <span
+                          className="text-sm font-bold px-2.5 py-1 rounded-full flex-shrink-0 ml-2"
+                          style={{
+                            background: canRedeem ? "rgba(13,148,136,0.2)" : "rgba(100,116,139,0.2)",
+                            color: canRedeem ? "#14b8a6" : "#64748b",
+                          }}
+                        >
+                          {reward.poinNeeded.toLocaleString()} {t.membership.dashboard.points}
+                        </span>
+                      </div>
+                      <p style={{ color: "#94a3b8" }} className="text-sm mb-4">
+                        {reward.deskripsi}
+                      </p>
+                      <Button
+                        onClick={() => handleRedeem(reward)}
+                        disabled={!canRedeem || redeemingId === reward.rewardId}
+                        className="w-full rounded-xl h-10"
                         style={{
-                          background: canRedeem ? "rgba(13,148,136,0.2)" : "rgba(100,116,139,0.2)",
-                          color: canRedeem ? "#14b8a6" : "#64748b",
+                          background: canRedeem
+                            ? "linear-gradient(135deg, #0d9488, #14b8a6)"
+                            : "#374151",
+                          color: canRedeem ? "white" : "#64748b",
                         }}
                       >
-                        {reward.poinNeeded.toLocaleString()} pts
-                      </span>
-                    </div>
-                    <p style={{ color: "#94a3b8" }} className="text-sm mb-4">
-                      {reward.deskripsi}
-                    </p>
-                    <Button
-                      onClick={() => handleRedeem(reward)}
-                      disabled={!canRedeem || redeemingId === reward.rewardId}
-                      className="w-full rounded-xl h-10"
-                      style={{
-                        background: canRedeem
-                          ? "linear-gradient(135deg, #0d9488, #14b8a6)"
-                          : "#374151",
-                        color: canRedeem ? "white" : "#64748b",
-                      }}
-                    >
-                      {redeemingId === reward.rewardId ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Processing...
-                        </div>
-                      ) : canRedeem ? (
-                        <div className="flex items-center gap-2">
-                          <Gift className="size-4" />
-                          Redeem Now
-                        </div>
-                      ) : (
-                        "Not Enough Points"
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                        {redeemingId === reward.rewardId ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {t.membership.dashboard.redeeming}
+                          </div>
+                        ) : canRedeem ? (
+                          <div className="flex items-center gap-2">
+                            <Gift className="size-4" />
+                            {t.membership.dashboard.redeemBtn}
+                          </div>
+                        ) : (
+                          t.membership.dashboard.insufficientPoints
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Partner Benefits Quick Access */}
         <div className="mt-8">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <Star className="size-5" style={{ color: "#0ea5e9" }} />
-            Partner Benefits
+            {t.membership.partners.title}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
@@ -486,7 +520,7 @@ export default function MemberDashboardPage() {
               style={{ borderColor: "rgba(255,255,255,0.2)", color: "#94a3b8" }}
             >
               <ArrowRight className="size-4 mr-2 rotate-180" />
-              Back to Bali Willy Tour
+              Bali Willy Tour
             </Button>
           </Link>
         </div>
