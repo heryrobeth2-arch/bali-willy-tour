@@ -43,6 +43,7 @@ export const translations = {
       tabCustomTour: "Custom Tour",
       pickup: "Pick up",
       bookingSekarang: "Booking Sekarang",
+      swipeHint: "Geser untuk melihat lebih banyak paket",
 
       // Package names
       packageA: "Package A - North Bali Tour",
@@ -456,6 +457,7 @@ export const translations = {
       tabCustomTour: "Custom Tour",
       pickup: "Pick up",
       bookingSekarang: "Book Now",
+      swipeHint: "Swipe to see more packages",
 
       packageA: "Package A - North Bali Tour",
       packageB: "Package B - Ubud Tour",
@@ -840,6 +842,7 @@ export const translations = {
       tabCustomTour: "定制游",
       pickup: "接车",
       bookingSekarang: "立即预订",
+      swipeHint: "滑动查看更多套餐",
 
       packageA: "套餐A - 巴厘岛北部游",
       packageB: "套餐B - 乌布游",

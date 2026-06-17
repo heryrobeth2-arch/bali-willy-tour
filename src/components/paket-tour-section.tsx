@@ -290,12 +290,18 @@ export function PaketTourSection() {
           </TabsList>
 
           <TabsContent value={activeTab}>
-            {/* Regular Packages Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {/* Mobile swipe hint */}
+            <p className="md:hidden text-center text-xs text-gray-400 mb-3 flex items-center justify-center gap-1.5">
+              <span>&larr;</span>
+              {t.paketTour.swipeHint || "Geser untuk melihat lebih banyak paket"}
+              <span>&rarr;</span>
+            </p>
+            {/* Regular Packages - Horizontal scroll on mobile, grid on desktop */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 md:overflow-visible md:snap-none">
               {filteredPackages.map((pkg) => (
                 <Card
                   key={pkg.id}
-                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-teal-100 hover:border-teal-300 py-0 gap-0"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-teal-100 hover:border-teal-300 py-0 gap-0 snap-start shrink-0 w-[78%] sm:w-[300px] md:w-auto md:shrink"
                 >
                   {/* Image */}
                   <div className="relative h-52 sm:h-56 overflow-hidden">
