@@ -484,16 +484,16 @@ export function PaketTourSection() {
                     <h4 className="text-sm font-semibold text-teal-700 mb-3">
                       {t.paketTour.hargaPerOrang}
                     </h4>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-1 -mx-1 px-1 no-scrollbar sm:grid sm:grid-cols-5 sm:gap-2 sm:overflow-visible sm:snap-none sm:pb-0">
                       {Object.entries(pkg.prices).map(([pax, price]) => (
                         <div
                           key={pax}
-                          className="text-center bg-white rounded-md p-2 border border-teal-100"
+                          className="text-center bg-white rounded-md px-2 py-2 border border-teal-100 snap-start shrink-0 min-w-[64px] sm:min-w-0 sm:shrink"
                         >
-                          <div className="text-xs text-gray-500 font-medium">
+                          <div className="text-[11px] text-gray-500 font-medium whitespace-nowrap">
                             {pax}
                           </div>
-                          <div className="text-sm font-bold text-teal-700">
+                          <div className="text-xs sm:text-sm font-bold text-teal-700 whitespace-nowrap leading-tight mt-0.5">
                             {price}
                           </div>
                         </div>
