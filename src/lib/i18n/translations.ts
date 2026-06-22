@@ -121,8 +121,8 @@ export const translations = {
       npDestCrystalBeach: "Crystal Beach",
       npDestCrystalBay: "Crystal Bay",
       npDestMantaPoint: "Manta Point",
-      npDestSnorkeling: "Manta Bay, Gamat Bay, Crystal Bay, Wall Point (Snorkeling)",
-      npDestWestSide: "West Side: Kelingking Beach, Broken Beach, Angel Billabong, Crystal Bay",
+      npDestSnorkeling: "Manta Bay, Gamat Bay, Wall Point (Snorkeling)",
+      npDestWestSide: "West Side: Kelingking Beach, Broken Beach, Angel Billabong",
 
       destinasi: "Destinasi:",
       hargaPerOrang: "Harga per Orang:",
@@ -591,8 +591,8 @@ export const translations = {
       npDestCrystalBeach: "Crystal Beach",
       npDestCrystalBay: "Crystal Bay",
       npDestMantaPoint: "Manta Point",
-      npDestSnorkeling: "Manta Bay, Gamat Bay, Crystal Bay, Wall Point (Snorkeling)",
-      npDestWestSide: "West Side: Kelingking Beach, Broken Beach, Angel Billabong, Crystal Bay",
+      npDestSnorkeling: "Manta Bay, Gamat Bay, Wall Point (Snorkeling)",
+      npDestWestSide: "West Side: Kelingking Beach, Broken Beach, Angel Billabong",
 
       destinasi: "Destinations:",
       hargaPerOrang: "Price per Person:",
@@ -1044,8 +1044,8 @@ export const translations = {
       npDestCrystalBeach: "水晶海滩",
       npDestCrystalBay: "水晶湾",
       npDestMantaPoint: "魔鬼鱼观景点",
-      npDestSnorkeling: "魔鬼鱼湾、加马特湾、水晶湾、墙点（浮潜）",
-      npDestWestSide: "西部：精灵海滩、破碎海滩、天使池、水晶湾",
+      npDestSnorkeling: "魔鬼鱼湾、加马特湾、墙点（浮潜）",
+      npDestWestSide: "西部：精灵海滩、破碎海滩、天使池",
 
       destinasi: "目的地：",
       hargaPerOrang: "每人价格：",
