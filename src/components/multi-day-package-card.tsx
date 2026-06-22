@@ -232,65 +232,92 @@ export function MultiDayPackageCard({ pkg, t }: MultiDayPackageCardProps) {
               {packageDesc}
             </p>
 
-            {/* Itinerary - LAYOUT MOBILE DIPERBAIKI */}
+            {/* Itinerary - Mobile-first clean layout */}
             <div>
               <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <MapPin className="size-5 text-teal-600" />
                 {t.multiDay.rincianPerjalanan}
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {pkg.itinerary.map((day, idx) => (
                   <div
                     key={idx}
-                    className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100"
+                    className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm"
                   >
-                    {/* Image: full width on mobile, fixed size on desktop */}
-                    <div className="relative w-full aspect-[16/9] sm:hidden">
-                      <Image
-                        src={day.image}
-                        alt={t.multiDay[day.titleKey] as string}
-                        fill
-                        sizes="100vw"
-                        className="object-cover"
-                      />
-                      <div className="absolute top-2 left-2">
-                        <span className="inline-flex items-center justify-center size-7 rounded-full bg-teal-600 text-white text-xs font-bold shadow-md">
-                          {day.day}
-                        </span>
+                    {/* === MOBILE LAYOUT (compact stacked) === */}
+                    <div className="sm:hidden">
+                      {/* Compact image with day badge overlay */}
+                      <div className="relative w-full h-28">
+                        <Image
+                          src={day.image}
+                          alt={t.multiDay[day.titleKey] as string}
+                          fill
+                          sizes="100vw"
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        {/* Day badge top-left */}
+                        <div className="absolute top-2 left-2">
+                          <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-teal-600 text-white text-xs font-bold shadow-md">
+                            Day {day.day}
+                          </span>
+                        </div>
+                        {/* Meal badge top-right */}
+                        {day.mealsKey && (
+                          <div className="absolute top-2 right-2 max-w-[60%]">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100/95 backdrop-blur text-amber-800 text-[10px] font-medium shadow-sm truncate">
+                              <Utensils className="size-2.5 shrink-0" />
+                              <span className="truncate">{t.multiDay[day.mealsKey]}</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Content */}
+                      <div className="p-3">
+                        <h4 className="font-bold text-gray-900 text-sm leading-snug mb-1.5">
+                          {t.multiDay[day.titleKey]}
+                        </h4>
+                        <p className="text-xs text-gray-600 leading-relaxed">
+                          {t.multiDay[day.descriptionKey]}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-4">
-                      {/* Header row: day number (desktop only) + title + meal badge */}
-                      <div className="flex items-start gap-2 sm:gap-3 mb-2">
-                        <span className="hidden sm:inline-flex items-center justify-center size-7 rounded-full bg-teal-600 text-white text-xs font-bold shrink-0">
-                          {day.day}
+                    {/* === DESKTOP LAYOUT (horizontal: thumbnail + content) === */}
+                    <div className="hidden sm:flex gap-4 p-4">
+                      {/* Thumbnail */}
+                      <div className="relative w-40 h-28 shrink-0 rounded-lg overflow-hidden">
+                        <Image
+                          src={day.image}
+                          alt={t.multiDay[day.titleKey] as string}
+                          fill
+                          sizes="160px"
+                          className="object-cover"
+                        />
+                        <span className="absolute top-1.5 left-1.5 inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-teal-600 text-white text-xs font-bold shadow-md">
+                          Day {day.day}
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-snug break-words">
+                      </div>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <h4 className="font-bold text-gray-900 text-base leading-snug flex-1">
                             {t.multiDay[day.titleKey]}
                           </h4>
+                          {day.mealsKey && (
+                            <Badge
+                              variant="outline"
+                              className="text-[11px] bg-amber-50 border-amber-200 text-amber-700 whitespace-nowrap shrink-0 mt-0.5"
+                            >
+                              <Utensils className="size-3 mr-1" />
+                              {t.multiDay[day.mealsKey]}
+                            </Badge>
+                          )}
                         </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {t.multiDay[day.descriptionKey]}
+                        </p>
                       </div>
-
-                      {/* Meal badge - separate row to avoid overlap with long titles */}
-                      {day.mealsKey && (
-                        <div className="mb-2">
-                          <Badge
-                            variant="outline"
-                            className="text-[11px] bg-amber-50 border-amber-200 text-amber-700 whitespace-nowrap"
-                          >
-                            <Utensils className="size-3 mr-1" />
-                            {t.multiDay[day.mealsKey]}
-                          </Badge>
-                        </div>
-                      )}
-
-                      {/* Description */}
-                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                        {t.multiDay[day.descriptionKey]}
-                      </p>
                     </div>
                   </div>
                 ))}
