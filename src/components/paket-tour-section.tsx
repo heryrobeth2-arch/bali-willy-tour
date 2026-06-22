@@ -481,7 +481,7 @@ export function PaketTourSection() {
             <div className="flex items-center gap-3">
               <Users className="size-5 text-amber-600 shrink-0" />
               <span className="text-amber-800 font-medium">
-                {t.paketTour.max7Orang}
+                {t.paketTour.max6Orang}
               </span>
             </div>
             <div className="flex items-center gap-3">

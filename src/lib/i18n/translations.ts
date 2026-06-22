@@ -96,7 +96,7 @@ export const translations = {
       // Important Notes
       infoPenting: "Informasi Penting",
       privateTourNote: "Ini adalah Private Tour",
-      max7Orang: "Maksimum 7 orang per mobil",
+      max6Orang: "Maksimum 6 orang per mobil",
       noHiddenCharge: "No Hidden Charge & No Down Payment",
 
       // Nusa Penida Section
@@ -569,7 +569,7 @@ export const translations = {
 
       infoPenting: "Important Information",
       privateTourNote: "This is a Private Tour",
-      max7Orang: "Maximum 7 persons per car",
+      max6Orang: "Maximum 6 persons per car",
       noHiddenCharge: "No Hidden Charge & No Down Payment",
 
       npTitle: "Nusa Penida Indah Tour",
@@ -1022,7 +1022,7 @@ export const translations = {
 
       infoPenting: "重要信息",
       privateTourNote: "这是私人游",
-      max7Orang: "每车最多7人",
+      max6Orang: "每车最多6人",
       noHiddenCharge: "No Hidden Charge & No Down Payment",
 
       npTitle: "努沙佩尼达美丽之旅",
