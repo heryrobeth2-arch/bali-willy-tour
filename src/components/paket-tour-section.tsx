@@ -23,6 +23,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/lib/i18n";
+import {
+  MultiDayPackageCard,
+  type MultiDayPackage,
+} from "@/components/multi-day-package-card";
 
 interface TourPackage {
   id: string;
@@ -218,6 +222,64 @@ const nusaPenidaIncludeKeys = [
   "npInclude8",
 ] as const;
 
+const multiDayPackages: MultiDayPackage[] = [
+  {
+    id: "discover-penida-4d3n",
+    nameKey: "pkgDiscoverPenidaName",
+    descriptionKey: "pkgDiscoverPenidaDesc",
+    images: [
+      "/images/nusa-penida.jpg",
+      "/images/package-a.jpg",
+      "/images/package-f.jpg",
+      "/images/package-b.jpg",
+      "/images/package-e.jpg",
+    ],
+    durationDays: 4,
+    durationNights: 3,
+    startPrice: "IDR 2.550.000",
+    minPax: "2",
+    itinerary: [
+      {
+        day: 1,
+        titleKey: "day1Title",
+        descriptionKey: "day1Desc",
+        mealsKey: "day1Meals",
+        image: "/images/package-a.jpg",
+      },
+      {
+        day: 2,
+        titleKey: "day2Title",
+        descriptionKey: "day2Desc",
+        mealsKey: "day2Meals",
+        image: "/images/package-f.jpg",
+      },
+      {
+        day: 3,
+        titleKey: "day3Title",
+        descriptionKey: "day3Desc",
+        mealsKey: "day3Meals",
+        image: "/images/nusa-penida.jpg",
+      },
+      {
+        day: 4,
+        titleKey: "day4Title",
+        descriptionKey: "day4Desc",
+        mealsKey: "day4Meals",
+        image: "/images/hero-bali.jpg",
+      },
+    ],
+    includeKeys: [
+      "inc1", "inc2", "inc3", "inc4", "inc5",
+      "inc6", "inc7", "inc8", "inc9", "inc10", "inc11",
+    ],
+    excludeKeys: ["exc1", "exc2", "exc3", "exc4", "exc5"],
+    termsKeys: [
+      "term1", "term2", "term3", "term4", "term5",
+      "term6", "term7", "term8", "term9", "term10",
+    ],
+  },
+];
+
 export function PaketTourSection() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("semua");
@@ -225,7 +287,9 @@ export function PaketTourSection() {
   const filteredPackages = regularPackages.filter((pkg) => {
     if (activeTab === "semua") return true;
     if (activeTab === "full-day") return pkg.category === "full-day";
-    if (activeTab === "nusa-penida") return pkg.category === "nusa-penida";
+    // Sembunyikan semua paket reguler di tab Nusa Penida —
+    // yang tampil hanya paket multi-hari + paket day-tour Nusa Penida di bawah
+    if (activeTab === "nusa-penida") return false;
     if (activeTab === "custom") return pkg.category === "custom";
     return true;
   });
@@ -290,15 +354,18 @@ export function PaketTourSection() {
           </TabsList>
 
           <TabsContent value={activeTab}>
-            {/* Mobile swipe hint */}
-            <p className="md:hidden text-center text-xs text-gray-400 mb-3 flex items-center justify-center gap-1.5">
-              <span>&larr;</span>
-              {t.paketTour.swipeHint || "Geser untuk melihat lebih banyak paket"}
-              <span>&rarr;</span>
-            </p>
-            {/* Regular Packages - Horizontal scroll on mobile, grid on desktop */}
-            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 md:overflow-visible md:snap-none">
-              {filteredPackages.map((pkg) => (
+            {/* Regular packages section — sembunyikan saat tab nusa-penida (hanya tampilkan multi-day di tab itu) */}
+            {activeTab !== "nusa-penida" && (
+              <>
+                {/* Mobile swipe hint */}
+                <p className="md:hidden text-center text-xs text-gray-400 mb-3 flex items-center justify-center gap-1.5">
+                  <span>&larr;</span>
+                  {t.paketTour.swipeHint || "Geser untuk melihat lebih banyak paket"}
+                  <span>&rarr;</span>
+                </p>
+                {/* Regular Packages - Horizontal scroll on mobile, grid on desktop */}
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 md:overflow-visible md:snap-none">
+                  {filteredPackages.map((pkg) => (
                 <Card
                   key={pkg.id}
                   className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-teal-100 hover:border-teal-300 py-0 gap-0 snap-start shrink-0 w-[78%] sm:w-[300px] md:w-auto md:shrink"
@@ -391,6 +458,8 @@ export function PaketTourSection() {
                 </Button>
               </div>
             )}
+              </>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -423,6 +492,46 @@ export function PaketTourSection() {
             </div>
           </div>
         </div>
+
+        {/* Multi-Day Packages Section - Show in "semua" and "nusa-penida" tabs */}
+        {(activeTab === "semua" || activeTab === "nusa-penida") && (
+          <div className="mt-16 sm:mt-20">
+            {/* Section Header */}
+            <div className="text-center mb-10 sm:mb-12">
+              <Badge
+                variant="secondary"
+                className="bg-amber-100 text-amber-700 mb-4 px-4 py-1"
+              >
+                {t.multiDay.sectionBadge}
+              </Badge>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+                {t.multiDay.sectionTitle}
+              </h3>
+              <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
+                {t.multiDay.sectionDescription}
+              </p>
+            </div>
+
+            {/* Multi-Day Package Cards */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar lg:grid lg:grid-cols-2 lg:gap-8 lg:overflow-visible lg:snap-none">
+              {multiDayPackages.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  className="snap-start shrink-0 w-[85%] sm:w-[420px] lg:w-auto lg:shrink"
+                >
+                  <MultiDayPackageCard pkg={pkg} t={t} />
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile swipe hint */}
+            <p className="lg:hidden text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-1.5">
+              <span>&larr;</span>
+              {t.paketTour.swipeHint}
+              <span>&rarr;</span>
+            </p>
+          </div>
+        )}
 
         {/* Nusa Penida Section */}
         <div className="mt-16 sm:mt-20">
