@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Setup Guide untuk Client Baru</title>
+<style>
+  @page {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #FFFFFF;
+    font-family: 'Noto Sans', 'Inter', 'Noto Sans SC', 'Liberation Sans', sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cover-page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    background: #FFFFFF;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    box-shadow: none;
+  }
+  /* Layer 1 - Background grid (subtle) */
+  .layer-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+    background-image:
+      linear-gradient(to right, rgba(15, 118, 110, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 118, 110, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Layer 2 - Structure: thick vertical anchor line on left */
+  .layer-structure {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+  .anchor-line {
+    position: absolute;
+    left: 12%;
+    top: 10%;
+    width: 6px;
+    height: 80%;
+    background: #0F766E;
+  }
+
+  /* Layer 3 - Content */
+  .layer-content {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    padding-left: calc(12% + 50px);
+    padding-right: 8%;
+  }
+
+  /* Kicker */
+  .kicker {
+    position: absolute;
+    top: 15%;
+    left: calc(12% + 50px);
+    right: 8%;
+    font-size: 12pt;
+    font-weight: 400;
+    letter-spacing: 3pt;
+    text-transform: uppercase;
+    color: #0F766E;
+    opacity: 0.85;
+  }
+
+  /* Hero Title */
+  .hero-title {
+    position: absolute;
+    top: 25%;
+    left: calc(12% + 50px);
+    right: 8%;
+    font-family: 'Noto Serif', 'Noto Serif SC', 'Liberation Serif', serif;
+    font-size: 48pt;
+    font-weight: 900;
+    line-height: 1.15;
+    color: #1F2937;
+    letter-spacing: -0.5pt;
+  }
+  .accent-line {
+    position: absolute;
+    top: 45%;
+    left: calc(12% + 50px);
+    width: 80px;
+    height: 4px;
+    background: #0F766E;
+    z-index: 3;
+  }
+
+  /* Summary block */
+  .summary {
+    position: absolute;
+    top: 50%;
+    left: calc(12% + 50px);
+    right: 8%;
+    max-width: 60%;
+    font-size: 12pt;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #374151;
+    opacity: 0.9;
+  }
+  .summary p {
+    margin: 0 0 0.6em 0;
+  }
+
+  /* Meta info */
+  .meta {
+    position: absolute;
+    top: 75%;
+    left: calc(12% + 50px);
+    right: 8%;
+    font-size: 11pt;
+    color: #6B7280;
+    line-height: 1.8;
+  }
+  .meta .label {
+    display: inline-block;
+    width: 110px;
+    color: #0F766E;
+    font-weight: 600;
+    letter-spacing: 0.5pt;
+    text-transform: uppercase;
+    font-size: 9pt;
+  }
+
+  /* Footer */
+  .footer {
+    position: absolute;
+    top: 92%;
+    left: calc(12% + 50px);
+    right: 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9pt;
+    color: #6B7280;
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .footer .brand {
+    color: #0F766E;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="cover-page">
+    <div class="layer-bg"></div>
+    <div class="layer-structure">
+      <div class="anchor-line"></div>
+    </div>
+    <div class="layer-content">
+      <div class="kicker">Panduan Internal &bull; Dokumen Referensi</div>
+      <div class="hero-title">
+        Setup Guide<br>
+        untuk Client Baru
+      </div>
+      <div class="accent-line"></div>
+      <div class="summary">
+        <p>Checklist branding lengkap untuk menduplikasi website Bali Willy Tour menjadi versi baru untuk client lain. Mencakup identitas visual, konten teks, domain, SEO, aset media, integrasi pihak ketiga, database, dan kontrol kualitas sebelum go-live.</p>
+        <p>Dokumen ini adalah catatan internal pemilik BWT untuk mengantisipasi kebutuhan client baru yang memerlukan aplikasi serupa.</p>
+      </div>
+      <div class="meta">
+        <div><span class="label">Disiapkan oleh</span> Bali Willy Tour</div>
+        <div><span class="label">Versi</span> 1.0</div>
+        <div><span class="label">Tanggal</span> 26 Juni 2026</div>
+        <div><span class="label">Audiens</span> Pemilik BWT (Internal)</div>
+      </div>
+      <div class="footer">
+        <span class="brand">BALI WILLY TOUR</span>
+        <span>Setup Guide &bull; v1.0</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
