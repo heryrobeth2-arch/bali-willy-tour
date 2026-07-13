@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   Clock,
   MapPin,
@@ -11,6 +12,8 @@ import {
   BadgeDollarSign,
   AlertCircle,
   Phone,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -327,6 +330,136 @@ const multiDayPackages: MultiDayPackage[] = [
   },
 ];
 
+// === Nusa Penida Banner Carousel ===
+const nusaPenidaBannerImages = [
+  "/images/nusa-penida.jpg",
+  "/images/package-e.jpg",
+  "/images/penida1.png",
+  "/images/crystal-beach.png",
+];
+
+function NusaPenidaBanner({
+  title,
+  description,
+  maxPaxNote,
+}: {
+  title: string;
+  description: string;
+  maxPaxNote: string;
+}) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: "center",
+  });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  const scrollPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  // Auto-play every 4 seconds
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+
+    const interval = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 4000);
+
+    return () => {
+      clearInterval(interval);
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  return (
+    <div className="relative rounded-2xl overflow-hidden mb-10 group/banner">
+      {/* Carousel */}
+      <div className="overflow-hidden h-[280px] sm:h-[340px] md:h-[380px]" ref={emblaRef}>
+        <div className="flex h-full">
+          {nusaPenidaBannerImages.map((img, idx) => (
+            <div
+              key={idx}
+              className="relative flex-[0_0_100%] min-w-0 h-full"
+            >
+              <Image
+                src={img}
+                alt={`Nusa Penida ${idx + 1}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 1200px"
+                className="object-cover"
+                priority={idx === 0}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Gradient overlay (left to right for text readability) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 via-teal-800/55 to-teal-700/30" />
+
+      {/* Navigation arrows - show on hover (desktop) */}
+      <button
+        type="button"
+        onClick={scrollPrev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft className="size-5 text-white" />
+      </button>
+      <button
+        type="button"
+        onClick={scrollNext}
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="size-5 text-white" />
+      </button>
+
+      {/* Text content - centered, on top of carousel */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 sm:px-10">
+        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 drop-shadow-lg">
+          {title}
+        </h3>
+        <p className="text-teal-50 text-base sm:text-lg max-w-xl mx-auto drop-shadow-md">
+          {description}
+        </p>
+        <div className="flex items-center justify-center gap-2 mt-4 text-teal-100 text-sm bg-teal-900/40 backdrop-blur-sm px-4 py-1.5 rounded-full">
+          <Users className="size-4" />
+          <span>{maxPaxNote}</span>
+        </div>
+      </div>
+
+      {/* Dots indicator */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        {nusaPenidaBannerImages.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => emblaApi?.scrollTo(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              idx === selectedIndex
+                ? "w-8 bg-white"
+                : "w-2 bg-white/50 hover:bg-white/70"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function PaketTourSection() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("semua");
@@ -582,28 +715,12 @@ export function PaketTourSection() {
 
         {/* Nusa Penida Section */}
         <div className="mt-16 sm:mt-20">
-          {/* Nusa Penida Banner */}
-          <div className="relative rounded-2xl overflow-hidden mb-10">
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: "url('/images/nusa-penida.jpg')",
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 to-teal-800/60" />
-            <div className="relative z-10 py-12 sm:py-16 px-6 sm:px-10 text-center">
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">
-                {t.paketTour.npTitle}
-              </h3>
-              <p className="text-teal-100 text-base sm:text-lg max-w-xl mx-auto">
-                {t.paketTour.npDescription}
-              </p>
-              <div className="flex items-center justify-center gap-2 mt-4 text-teal-200 text-sm">
-                <Users className="size-4" />
-                <span>{t.paketTour.npMax6Orang}</span>
-              </div>
-            </div>
-          </div>
+          {/* Nusa Penida Banner - Carousel */}
+          <NusaPenidaBanner
+            title={t.paketTour.npTitle}
+            description={t.paketTour.npDescription}
+            maxPaxNote={t.paketTour.npMax6Orang}
+          />
 
           {/* Nusa Penida Packages */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-10">
