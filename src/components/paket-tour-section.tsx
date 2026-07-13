@@ -332,10 +332,9 @@ const multiDayPackages: MultiDayPackage[] = [
 
 // === Nusa Penida Banner Carousel ===
 const nusaPenidaBannerImages = [
-  "/images/nusa-penida.jpg",
-  "/images/package-e.jpg",
-  "/images/penida1.png",
-  "/images/crystal-beach.png",
+  "/images/np-alec-favale.jpg",
+  "/images/np-beach-club.jpg",
+  "/images/np-angels-billabong.webp",
 ];
 
 function NusaPenidaBanner({
