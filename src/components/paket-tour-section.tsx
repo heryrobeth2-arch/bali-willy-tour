@@ -383,7 +383,7 @@ function NusaPenidaBanner({
 
   return (
     <div className="relative rounded-2xl overflow-hidden mb-10 group/banner">
-      {/* Carousel */}
+      {/* Carousel - gambar tampil dengan warna asli, TANPA overlay */}
       <div className="overflow-hidden h-[280px] sm:h-[340px] md:h-[380px]" ref={emblaRef}>
         <div className="flex h-full">
           {nusaPenidaBannerImages.map((img, idx) => (
@@ -404,43 +404,49 @@ function NusaPenidaBanner({
         </div>
       </div>
 
-      {/* Gradient overlay (left to right for text readability) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-teal-900/85 via-teal-800/55 to-teal-700/30" />
+      {/* Subtle bottom-only gradient (only for text legibility at bottom, NOT covering whole image) */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
 
       {/* Navigation arrows - show on hover (desktop) */}
       <button
         type="button"
         onClick={scrollPrev}
-        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="size-5 text-white" />
+        <ChevronLeft className="size-5 text-white drop-shadow-lg" />
       </button>
       <button
         type="button"
         onClick={scrollNext}
-        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 backdrop-blur rounded-full p-2 shadow-md transition-all hover:scale-110 opacity-0 group-hover/banner:opacity-100"
         aria-label="Next slide"
       >
-        <ChevronRight className="size-5 text-white" />
+        <ChevronRight className="size-5 text-white drop-shadow-lg" />
       </button>
 
-      {/* Text content - centered, on top of carousel */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 sm:px-10">
-        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 drop-shadow-lg">
+      {/* Text content - posisi di bawah, dengan drop shadow agresif supaya tetap readable tanpa overlay */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center justify-end text-center px-6 sm:px-10 pb-10 sm:pb-12 pt-16">
+        <h3
+          className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3"
+          style={{ textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 0 24px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.8)" }}
+        >
           {title}
         </h3>
-        <p className="text-teal-50 text-base sm:text-lg max-w-xl mx-auto drop-shadow-md">
+        <p
+          className="text-white text-base sm:text-lg max-w-xl mx-auto"
+          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7)" }}
+        >
           {description}
         </p>
-        <div className="flex items-center justify-center gap-2 mt-4 text-teal-100 text-sm bg-teal-900/40 backdrop-blur-sm px-4 py-1.5 rounded-full">
+        <div className="flex items-center justify-center gap-2 mt-4 text-white text-sm bg-black/55 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
           <Users className="size-4" />
           <span>{maxPaxNote}</span>
         </div>
       </div>
 
       {/* Dots indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      <div className="absolute top-4 right-1/2 translate-x-1/2 flex gap-2 z-20">
         {nusaPenidaBannerImages.map((_, idx) => (
           <button
             key={idx}
@@ -449,8 +455,8 @@ function NusaPenidaBanner({
             aria-label={`Go to slide ${idx + 1}`}
             className={`h-2 rounded-full transition-all duration-300 ${
               idx === selectedIndex
-                ? "w-8 bg-white"
-                : "w-2 bg-white/50 hover:bg-white/70"
+                ? "w-8 bg-white shadow-lg"
+                : "w-2 bg-white/60 hover:bg-white/90"
             }`}
           />
         ))}
