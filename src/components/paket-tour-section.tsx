@@ -278,6 +278,53 @@ const multiDayPackages: MultiDayPackage[] = [
       "term6", "term7", "term8", "term9", "term10",
     ],
   },
+  {
+    id: "nusa-penida-3d2n",
+    nameKey: "pkgNusaPenida3d2nName",
+    descriptionKey: "pkgNusaPenida3d2nDesc",
+    images: [
+      "/images/package-e.jpg",
+      "/images/nusa-penida.jpg",
+      "/images/package-f.jpg",
+      "/images/hero-bali.jpg",
+    ],
+    durationDays: 3,
+    durationNights: 2,
+    startPrice: "IDR 3.200.000",
+    minPax: "2",
+    itinerary: [
+      {
+        day: 1,
+        titleKey: "np3d_day1Title",
+        descriptionKey: "np3d_day1Desc",
+        mealsKey: "np3d_day1Meals",
+        image: "/images/package-e.jpg",
+      },
+      {
+        day: 2,
+        titleKey: "np3d_day2Title",
+        descriptionKey: "np3d_day2Desc",
+        mealsKey: "np3d_day2Meals",
+        image: "/images/nusa-penida.jpg",
+      },
+      {
+        day: 3,
+        titleKey: "np3d_day3Title",
+        descriptionKey: "np3d_day3Desc",
+        mealsKey: "np3d_day3Meals",
+        image: "/images/package-f.jpg",
+      },
+    ],
+    includeKeys: [
+      "np3d_inc1", "np3d_inc2", "np3d_inc3", "np3d_inc4", "np3d_inc5",
+      "np3d_inc6", "np3d_inc7", "np3d_inc8", "np3d_inc9", "np3d_inc10",
+    ],
+    excludeKeys: ["np3d_exc1", "np3d_exc2", "np3d_exc3", "np3d_exc4", "np3d_exc5"],
+    termsKeys: [
+      "np3d_term1", "np3d_term2", "np3d_term3", "np3d_term4", "np3d_term5",
+      "np3d_term6", "np3d_term7", "np3d_term8", "np3d_term9", "np3d_term10",
+    ],
+  },
 ];
 
 export function PaketTourSection() {
