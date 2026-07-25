@@ -286,10 +286,9 @@ const multiDayPackages: MultiDayPackage[] = [
     nameKey: "pkgNusaPenida3d2nName",
     descriptionKey: "pkgNusaPenida3d2nDesc",
     images: [
-      "/images/package-e.jpg",
-      "/images/nusa-penida.jpg",
-      "/images/package-f.jpg",
-      "/images/hero-bali.jpg",
+      "/images/np3d-kelingking.jpg",
+      "/images/np3d-angels-billabong.webp",
+      "/images/np3d-broken-beach.jpg",
     ],
     durationDays: 3,
     durationNights: 2,
