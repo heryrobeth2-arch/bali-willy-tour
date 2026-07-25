@@ -268,7 +268,7 @@ const multiDayPackages: MultiDayPackage[] = [
         titleKey: "day4Title",
         descriptionKey: "day4Desc",
         mealsKey: "day4Meals",
-        image: "/images/hero-bali.jpg",
+        image: "/images/np4d-krisna.png",
       },
     ],
     includeKeys: [
