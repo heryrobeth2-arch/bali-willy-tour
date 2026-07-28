@@ -22,9 +22,25 @@ export function HeroSection() {
   const [showContent, setShowContent] = useState(false);
   const [videoSkipped, setVideoSkipped] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  // Debug state — visible on-screen so the user can see what's happening
+  // without needing to open DevTools.
+  const [debugInfo, setDebugInfo] = useState("");
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Refresh debug info every 500ms while video layer is visible.
+  useEffect(() => {
+    if (videoEnded) return;
+    const id = window.setInterval(() => {
+      const v = videoRef.current;
+      if (!v) return;
+      setDebugInfo(
+        `muted=${v.muted} | volume=${v.volume.toFixed(2)} | paused=${v.paused} | ended=${v.ended} | t=${v.currentTime.toFixed(1)}s | ready=${v.readyState} | network=${v.networkState}`
+      );
+    }, 500);
+    return () => window.clearInterval(id);
+  }, [videoEnded]);
 
   // === THE KEY INSIGHT ===
   // Browsers only allow autoplay-with-sound when play() is called SYNCHRONOUSLY
@@ -63,12 +79,18 @@ export function HeroSection() {
     const v = videoRef.current;
     if (!v) return;
     const wantMuted = !isMuted;
-    // Apply muted FIRST, then play, all synchronously in the click handler.
+    // Apply muted via BOTH property and attribute removal — some browsers
+    // are sticky about the HTML attribute.
     v.muted = wantMuted;
-    v.volume = wantMuted ? 0 : 1;
+    if (wantMuted) {
+      v.setAttribute("muted", "");
+      v.volume = 0;
+    } else {
+      v.removeAttribute("muted");
+      v.volume = 1;
+    }
     if (!wantMuted) {
       // If video ended or paused, restart from beginning WITH SOUND.
-      // This play() call is in the user gesture → browser allows sound.
       if (v.ended || v.paused) {
         try {
           v.currentTime = 0;
@@ -81,6 +103,7 @@ export function HeroSection() {
             console.warn("[HeroVideo] play-with-sound blocked:", err);
             // Fallback: try muted play
             v.muted = true;
+            v.setAttribute("muted", "");
             setIsMuted(true);
             v.play().catch(() => {
               setVideoEnded(true);
@@ -89,7 +112,6 @@ export function HeroSection() {
           });
         }
       }
-      // Make sure video layer is visible
       setVideoEnded(false);
       setShowContent(false);
     }
@@ -158,6 +180,12 @@ export function HeroSection() {
           where the `muted` attribute doesn't sync with the DOM property.
           Instead, we set v.muted imperatively in our handlers.
         */}
+        {/*
+          NOTE: `controls` adds the browser's NATIVE video controls (play/pause,
+          volume, unmute). Native controls ALWAYS work — if the custom Unmute
+          button fails for any browser-policy reason, the user can use the
+          native unmute button (speaker icon, bottom-right of the video).
+        */}
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
@@ -166,11 +194,24 @@ export function HeroSection() {
           muted
           playsInline
           preload="auto"
+          controls
           onEnded={handleVideoEnded}
           onError={handleVideoError}
         />
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
+
+        {/* === DEBUG OVERLAY (visible on screen) ===
+            Shows real-time video state so we can diagnose without DevTools. */}
+        {!videoEnded && (
+          <div className="absolute top-6 left-6 z-40 px-3 py-2 rounded-lg bg-black/70 backdrop-blur-sm text-green-400 text-xs font-mono border border-green-500/30 max-w-md">
+            <div className="text-white font-bold mb-1">DEBUG VIDEO</div>
+            <div>{debugInfo || "loading..."}</div>
+            <div className="text-white/60 mt-1">
+              isMuted(state)={String(isMuted)}
+            </div>
+          </div>
+        )}
 
         {/* Sound toggle — clicking this is a user gesture, so play() with
             sound is allowed by the browser. */}
