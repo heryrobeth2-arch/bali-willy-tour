@@ -4,60 +4,103 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, MapPin, ChevronDown, Shield, Car, Clock } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function HeroSection() {
   const { t } = useLanguage();
+
+  // `videoEnded` controls whether the image (Tanah Lot) is currently shown.
+  // When false, the intro video is playing (or about to play).
   const [videoEnded, setVideoEnded] = useState(false);
-  const [videoSkipped, setVideoSkipped] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [videoSkipped, setVideoSkipped] = useState(false);
+
+  const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Persist "already played" within the same session so revisits don't replay
-  // the intro every time the user scrolls back to the hero.
-  const [hasPlayed, setHasPlayed] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const flag = window.sessionStorage.getItem("bwt_intro_played");
-    if (flag === "1") {
-      setHasPlayed(true);
+  // Play the intro video from the beginning.
+  const playIntro = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    // Reset state so the video layer is visible again.
+    setVideoEnded(false);
+    setVideoSkipped(false);
+    setShowContent(false);
+    // Restart the video element.
+    try {
+      v.currentTime = 0;
+      void v.play().catch(() => {
+        // Autoplay can fail (browser policy). Fall back to image.
+        setVideoEnded(true);
+        window.setTimeout(() => setShowContent(true), 80);
+      });
+    } catch {
       setVideoEnded(true);
+      window.setTimeout(() => setShowContent(true), 80);
     }
   }, []);
 
-  const handleVideoEnded = () => {
+  // Reveal the static hero (image + content) when the video ends.
+  const handleVideoEnded = useCallback(() => {
     setVideoEnded(true);
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("bwt_intro_played", "1");
-    }
-    // Stagger content reveal for a smoother transition
     window.setTimeout(() => setShowContent(true), 80);
-  };
+  }, []);
 
-  const handleSkip = () => {
+  // Allow the user to skip the intro.
+  const handleSkip = useCallback(() => {
     setVideoSkipped(true);
     setVideoEnded(true);
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("bwt_intro_played", "1");
-    }
     window.setTimeout(() => setShowContent(true), 80);
-  };
+  }, []);
 
-  // Fallback: if the video fails to load, show the hero immediately.
-  const handleVideoError = () => {
+  // If the video fails to load, fall back to the image immediately.
+  const handleVideoError = useCallback(() => {
     setVideoEnded(true);
     window.setTimeout(() => setShowContent(true), 80);
-  };
+  }, []);
 
-  const introActive = !videoEnded && !hasPlayed;
+  // === IntersectionObserver: replay the intro whenever the hero section
+  // scrolls back into view (≥ 60% visible). This is what makes the video
+  // "appear again when the user scrolls back to Home". ===
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    let lastVisible = false;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const isVisible = entry.isIntersecting && entry.intersectionRatio >= 0.6;
+          if (isVisible && !lastVisible) {
+            // Section just became visible again → replay intro.
+            playIntro();
+          }
+          lastVisible = isVisible;
+        }
+      },
+      { threshold: [0, 0.6, 1] }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [playIntro]);
+
+  // Initial autoplay on mount (some browsers need a tick after the video
+  // element is mounted before .play() will work).
+  useEffect(() => {
+    playIntro();
+  }, [playIntro]);
+
+  const introActive = !videoEnded;
 
   return (
     <section
+      ref={sectionRef}
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
     >
-      {/* === Intro Video Layer (plays first) === */}
+      {/* === Intro Video Layer (plays first / replays on scroll-back) === */}
       {introActive && (
         <div
           className={`absolute inset-0 z-30 transition-opacity duration-700 ${
