@@ -22,34 +22,25 @@ export function HeroSection() {
   const [showContent, setShowContent] = useState(false);
   const [videoSkipped, setVideoSkipped] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  // `playbackKey` forces React to fully recreate the <video> element when it
-  // changes. This is the key trick: some browsers "lock" a video element's
-  // audio to whatever muted state it started with. The only reliable way to
-  // unmute is to recreate the element from scratch with muted=false.
-  const [playbackKey, setPlaybackKey] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Kick off a fresh play of the intro. Always forces muted=true because this
-  // is also called from IntersectionObserver (no user gesture → browser would
-  // reject autoplay-with-sound).
-  const playIntro = useCallback(() => {
+  // === THE KEY INSIGHT ===
+  // Browsers only allow autoplay-with-sound when play() is called SYNCHRONOUSLY
+  // inside a user gesture handler (click). useEffect runs AFTER React commits
+  // the DOM, by which time the user gesture is over. So we MUST call play()
+  // directly inside the click handler, not in a useEffect.
+
+  // Play the intro muted (used by IntersectionObserver — no user gesture).
+  const playIntroMuted = useCallback(() => {
+    const v = videoRef.current;
     setIsMuted(true);
     setVideoEnded(false);
     setVideoSkipped(false);
     setShowContent(false);
-    setPlaybackKey((k) => k + 1);
-  }, []);
-
-  // When the <video> element is (re)created, configure muted and start
-  // playback. The `play()` call here is treated as user-gesture-initiated
-  // when triggered from a click handler that incremented `playbackKey`.
-  useEffect(() => {
-    const v = videoRef.current;
     if (!v) return;
-    // Set muted BEFORE play(). Order matters for some browsers.
-    v.muted = isMuted;
+    v.muted = true;
     v.volume = 1;
     try {
       v.currentTime = 0;
@@ -59,27 +50,51 @@ export function HeroSection() {
     const p = v.play();
     if (p && typeof p.catch === "function") {
       p.catch(() => {
-        if (isMuted) {
-          // Even muted autoplay failed — fall back to image.
-          setVideoEnded(true);
-          window.setTimeout(() => setShowContent(true), 80);
-        } else {
-          // Play-with-sound was blocked. Revert to muted and try again.
-          v.muted = true;
-          setIsMuted(true);
-          try {
+        setVideoEnded(true);
+        window.setTimeout(() => setShowContent(true), 80);
+      });
+    }
+  }, []);
+
+  // Toggle mute — called from a click handler, so we have a user gesture.
+  // We call v.play() SYNCHRONOUSLY here (not in useEffect) so the browser
+  // treats it as user-initiated and allows sound.
+  const toggleMute = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const wantMuted = !isMuted;
+    // Apply muted FIRST, then play, all synchronously in the click handler.
+    v.muted = wantMuted;
+    v.volume = wantMuted ? 0 : 1;
+    if (!wantMuted) {
+      // If video ended or paused, restart from beginning WITH SOUND.
+      // This play() call is in the user gesture → browser allows sound.
+      if (v.ended || v.paused) {
+        try {
+          v.currentTime = 0;
+        } catch {
+          /* ignore */
+        }
+        const p = v.play();
+        if (p && typeof p.catch === "function") {
+          p.catch((err) => {
+            console.warn("[HeroVideo] play-with-sound blocked:", err);
+            // Fallback: try muted play
+            v.muted = true;
+            setIsMuted(true);
             v.play().catch(() => {
               setVideoEnded(true);
               window.setTimeout(() => setShowContent(true), 80);
             });
-          } catch {
-            setVideoEnded(true);
-            window.setTimeout(() => setShowContent(true), 80);
-          }
+          });
         }
-      });
+      }
+      // Make sure video layer is visible
+      setVideoEnded(false);
+      setShowContent(false);
     }
-  }, [playbackKey, isMuted]);
+    setIsMuted(wantMuted);
+  }, [isMuted]);
 
   const handleVideoEnded = useCallback(() => {
     setVideoEnded(true);
@@ -97,19 +112,7 @@ export function HeroSection() {
     window.setTimeout(() => setShowContent(true), 80);
   }, []);
 
-  // Toggle mute. The trick: by changing `isMuted` AND `playbackKey`, the
-  // <video> element is fully recreated (key change) and the new element
-  // starts with muted=false. Because this happens inside a click handler,
-  // the subsequent play() in useEffect is treated as user-gesture-initiated
-  // and is allowed to play with sound.
-  const toggleMute = useCallback(() => {
-    setIsMuted((prev) => !prev);
-    setVideoEnded(false);
-    setShowContent(false);
-    setPlaybackKey((k) => k + 1);
-  }, []);
-
-  // === IntersectionObserver: replay intro when scrolling back to Home. ===
+  // IntersectionObserver: replay intro when scrolling back to Home.
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -120,7 +123,7 @@ export function HeroSection() {
           const isVisible =
             entry.isIntersecting && entry.intersectionRatio >= 0.6;
           if (isVisible && !lastVisible) {
-            playIntro();
+            playIntroMuted();
           }
           lastVisible = isVisible;
         }
@@ -129,12 +132,12 @@ export function HeroSection() {
     );
     observer.observe(section);
     return () => observer.disconnect();
-  }, [playIntro]);
+  }, [playIntroMuted]);
 
-  // Initial play on mount
+  // Initial play on mount (muted autoplay is always allowed).
   useEffect(() => {
-    playIntro();
-  }, [playIntro]);
+    playIntroMuted();
+  }, [playIntroMuted]);
 
   return (
     <section
@@ -142,21 +145,25 @@ export function HeroSection() {
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
     >
-      {/* === Intro Video Layer ===
-          Always rendered; visibility toggled via CSS so the element stays
-          alive for replay. The `key` prop forces a full DOM recreation when
-          mute state changes — this is what makes unmute actually work. */}
+      {/* === Intro Video Layer === */}
       <div
         className={`absolute inset-0 z-30 transition-opacity duration-700 ${
           videoEnded ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         aria-hidden={videoEnded}
       >
+        {/*
+          NOTE: `muted` and `autoPlay` are HTML attributes set once on mount.
+          We do NOT control `muted` via React state — React has a known bug
+          where the `muted` attribute doesn't sync with the DOM property.
+          Instead, we set v.muted imperatively in our handlers.
+        */}
         <video
-          key={playbackKey}
           ref={videoRef}
           className="w-full h-full object-cover"
           src="/videos/test2.mp4"
+          autoPlay
+          muted
           playsInline
           preload="auto"
           onEnded={handleVideoEnded}
@@ -165,7 +172,8 @@ export function HeroSection() {
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
 
-        {/* Sound toggle */}
+        {/* Sound toggle — clicking this is a user gesture, so play() with
+            sound is allowed by the browser. */}
         <button
           type="button"
           onClick={toggleMute}
