@@ -25,6 +25,7 @@ export function HeroSection() {
   // Debug state — visible on-screen so the user can see what's happening
   // without needing to open DevTools.
   const [debugInfo, setDebugInfo] = useState("");
+  const [clickCount, setClickCount] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,6 +42,29 @@ export function HeroSection() {
     }, 500);
     return () => window.clearInterval(id);
   }, [videoEnded]);
+
+  // On mount, force muted=true (because we removed the JSX `muted` attribute
+  // — see comment near the <video> element). This is required for autoplay
+  // policy to allow the initial muted playback.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.volume = 1;
+    // Start muted autoplay (always allowed by browsers).
+    try {
+      v.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => {
+        setVideoEnded(true);
+        window.setTimeout(() => setShowContent(true), 80);
+      });
+    }
+  }, []);
 
   // === THE KEY INSIGHT ===
   // Browsers only allow autoplay-with-sound when play() is called SYNCHRONOUSLY
@@ -76,6 +100,7 @@ export function HeroSection() {
   // We call v.play() SYNCHRONOUSLY here (not in useEffect) so the browser
   // treats it as user-initiated and allows sound.
   const toggleMute = useCallback(() => {
+    setClickCount((c) => c + 1);
     const v = videoRef.current;
     if (!v) return;
     const wantMuted = !isMuted;
@@ -181,20 +206,25 @@ export function HeroSection() {
           Instead, we set v.muted imperatively in our handlers.
         */}
         {/*
-          NOTE: `controls` adds the browser's NATIVE video controls (play/pause,
-          volume, unmute). Native controls ALWAYS work — if the custom Unmute
-          button fails for any browser-policy reason, the user can use the
-          native unmute button (speaker icon, bottom-right of the video).
+          CRITICAL: We do NOT pass `muted` as a JSX attribute. React has a
+          long-standing bug where the `muted` JSX attribute does NOT sync
+          reliably with the DOM `HTMLMediaElement.muted` property — it can
+          re-mute the element on every re-render, undoing our imperative
+          `v.muted = false` in the click handler.
+
+          Instead, we set `v.muted` imperatively:
+            - On mount (useEffect) → muted = true (for autoplay policy)
+            - On click (toggleMute) → muted = !isMuted
+
+          We also do NOT pass `autoPlay` — we call v.play() imperatively
+          so we have full control over when playback starts.
         */}
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
           src="/videos/test2.mp4"
-          autoPlay
-          muted
           playsInline
           preload="auto"
-          controls
           onEnded={handleVideoEnded}
           onError={handleVideoError}
         />
@@ -208,7 +238,7 @@ export function HeroSection() {
             <div className="text-white font-bold mb-1">DEBUG VIDEO</div>
             <div>{debugInfo || "loading..."}</div>
             <div className="text-white/60 mt-1">
-              isMuted(state)={String(isMuted)}
+              isMuted(state)={String(isMuted)} | clicks={clickCount}
             </div>
           </div>
         )}
