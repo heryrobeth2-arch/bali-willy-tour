@@ -18,126 +18,108 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export function HeroSection() {
   const { t } = useLanguage();
 
-  // `videoEnded` controls whether the image (Tanah Lot) is currently shown.
-  // When false, the intro video is visible/playing.
   const [videoEnded, setVideoEnded] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [videoSkipped, setVideoSkipped] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  // `playbackKey` forces React to fully recreate the <video> element when it
+  // changes. This is the key trick: some browsers "lock" a video element's
+  // audio to whatever muted state it started with. The only reliable way to
+  // unmute is to recreate the element from scratch with muted=false.
+  const [playbackKey, setPlaybackKey] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Play the intro video from the beginning.
+  // Kick off a fresh play of the intro. Always forces muted=true because this
+  // is also called from IntersectionObserver (no user gesture → browser would
+  // reject autoplay-with-sound).
   const playIntro = useCallback(() => {
-    const v = videoRef.current;
-    // Always make the video layer visible first, so the element is in the DOM.
+    setIsMuted(true);
     setVideoEnded(false);
     setVideoSkipped(false);
     setShowContent(false);
-    if (!v) {
-      // Video element not yet mounted — the useEffect below will retry.
-      return;
-    }
-    try {
-      v.currentTime = 0;
-      const p = v.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          // Autoplay can fail (browser policy). Fall back to image.
-          setVideoEnded(true);
-          window.setTimeout(() => setShowContent(true), 80);
-        });
-      }
-    } catch {
-      setVideoEnded(true);
-      window.setTimeout(() => setShowContent(true), 80);
-    }
+    setPlaybackKey((k) => k + 1);
   }, []);
 
-  // Reveal the static hero (image + content) when the video ends.
+  // When the <video> element is (re)created, configure muted and start
+  // playback. The `play()` call here is treated as user-gesture-initiated
+  // when triggered from a click handler that incremented `playbackKey`.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    // Set muted BEFORE play(). Order matters for some browsers.
+    v.muted = isMuted;
+    v.volume = 1;
+    try {
+      v.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => {
+        if (isMuted) {
+          // Even muted autoplay failed — fall back to image.
+          setVideoEnded(true);
+          window.setTimeout(() => setShowContent(true), 80);
+        } else {
+          // Play-with-sound was blocked. Revert to muted and try again.
+          v.muted = true;
+          setIsMuted(true);
+          try {
+            v.play().catch(() => {
+              setVideoEnded(true);
+              window.setTimeout(() => setShowContent(true), 80);
+            });
+          } catch {
+            setVideoEnded(true);
+            window.setTimeout(() => setShowContent(true), 80);
+          }
+        }
+      });
+    }
+  }, [playbackKey, isMuted]);
+
   const handleVideoEnded = useCallback(() => {
     setVideoEnded(true);
     window.setTimeout(() => setShowContent(true), 80);
   }, []);
 
-  // Allow the user to skip the intro.
   const handleSkip = useCallback(() => {
     setVideoSkipped(true);
     setVideoEnded(true);
     window.setTimeout(() => setShowContent(true), 80);
   }, []);
 
-  // If the video fails to load, fall back to the image immediately.
   const handleVideoError = useCallback(() => {
     setVideoEnded(true);
     window.setTimeout(() => setShowContent(true), 80);
   }, []);
 
-  // Toggle mute/unmute. Browsers block autoplay-with-sound, so we start muted
-  // and let the user opt in to audio via this button.
-  //
-  // CRITICAL: We must NOT put `muted` in the JSX — React has a long-standing
-  // bug where the `muted` attribute doesn't sync reliably with the DOM
-  // `HTMLMediaElement.muted` property. So we manage it 100% imperatively
-  // and call `play()` synchronously inside the click handler so the browser
-  // treats it as a user-gesture-initiated playback (allowed to have sound).
+  // Toggle mute. The trick: by changing `isMuted` AND `playbackKey`, the
+  // <video> element is fully recreated (key change) and the new element
+  // starts with muted=false. Because this happens inside a click handler,
+  // the subsequent play() in useEffect is treated as user-gesture-initiated
+  // and is allowed to play with sound.
   const toggleMute = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const newMuted = !v.muted;
-    // Apply to the element FIRST, synchronously inside the click handler.
-    v.muted = newMuted;
-    if (!newMuted) {
-      v.volume = 1;
-      // If the video already ended (or isn't currently playing), restart it
-      // from the beginning so the user actually hears the audio. This must
-      // happen synchronously in the same user gesture — NOT in a
-      // requestAnimationFrame or setTimeout — otherwise the browser will
-      // reject play-with-sound as a non-user-gesture autoplay.
-      if (v.ended || v.paused) {
-        v.currentTime = 0;
-        setVideoEnded(false);
-        setShowContent(false);
-        const p = v.play();
-        if (p && typeof p.catch === "function") {
-          p.catch(() => {
-            // If play-with-sound is still blocked, revert to muted.
-            v.muted = true;
-            setIsMuted(true);
-            setVideoEnded(true);
-            window.setTimeout(() => setShowContent(true), 80);
-          });
-        }
-      }
-    }
-    setIsMuted(newMuted);
+    setIsMuted((prev) => !prev);
+    setVideoEnded(false);
+    setShowContent(false);
+    setPlaybackKey((k) => k + 1);
   }, []);
 
-  // On mount, force the video element to muted=true (initial state). We
-  // intentionally do NOT pass `muted` via JSX — see the comment in
-  // `toggleMute` above.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = true;
-    v.volume = 1;
-  }, []);
-
-  // === IntersectionObserver: replay the intro whenever the hero section
-  // scrolls back into view (≥ 60% visible). ===
+  // === IntersectionObserver: replay intro when scrolling back to Home. ===
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
-
     let lastVisible = false;
-
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          const isVisible = entry.isIntersecting && entry.intersectionRatio >= 0.6;
+          const isVisible =
+            entry.isIntersecting && entry.intersectionRatio >= 0.6;
           if (isVisible && !lastVisible) {
-            // Section just became visible again → replay intro.
             playIntro();
           }
           lastVisible = isVisible;
@@ -145,12 +127,11 @@ export function HeroSection() {
       },
       { threshold: [0, 0.6, 1] }
     );
-
     observer.observe(section);
     return () => observer.disconnect();
   }, [playIntro]);
 
-  // After mount, the video element is in the DOM — kick off the first play.
+  // Initial play on mount
   useEffect(() => {
     playIntro();
   }, [playIntro]);
@@ -162,9 +143,9 @@ export function HeroSection() {
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
     >
       {/* === Intro Video Layer ===
-          Always rendered (so videoRef.current is never null), visibility
-          toggled via CSS opacity. This fixes the "scroll back to Home doesn't
-          replay" bug. */}
+          Always rendered; visibility toggled via CSS so the element stays
+          alive for replay. The `key` prop forces a full DOM recreation when
+          mute state changes — this is what makes unmute actually work. */}
       <div
         className={`absolute inset-0 z-30 transition-opacity duration-700 ${
           videoEnded ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -172,20 +153,19 @@ export function HeroSection() {
         aria-hidden={videoEnded}
       >
         <video
+          key={playbackKey}
           ref={videoRef}
           className="w-full h-full object-cover"
           src="/videos/test2.mp4"
-          autoPlay
           playsInline
           preload="auto"
           onEnded={handleVideoEnded}
           onError={handleVideoError}
         />
-        {/* Subtle gradient overlay to keep brand cohesion during intro */}
+        {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
 
-        {/* Sound toggle — lets the user opt in to audio (browsers block
-            autoplay-with-sound, so we start muted by default). */}
+        {/* Sound toggle */}
         <button
           type="button"
           onClick={toggleMute}
@@ -305,7 +285,7 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Scroll indicator (only after video ends) */}
+      {/* Scroll indicator */}
       {videoEnded && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-10">
           <Link
