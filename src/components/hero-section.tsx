@@ -1,7 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MessageCircle, MapPin, ChevronDown, Shield, Car, Clock } from "lucide-react";
+import {
+  MessageCircle,
+  MapPin,
+  ChevronDown,
+  Shield,
+  Car,
+  Clock,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,10 +19,11 @@ export function HeroSection() {
   const { t } = useLanguage();
 
   // `videoEnded` controls whether the image (Tanah Lot) is currently shown.
-  // When false, the intro video is playing (or about to play).
+  // When false, the intro video is visible/playing.
   const [videoEnded, setVideoEnded] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [videoSkipped, setVideoSkipped] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -21,19 +31,24 @@ export function HeroSection() {
   // Play the intro video from the beginning.
   const playIntro = useCallback(() => {
     const v = videoRef.current;
-    if (!v) return;
-    // Reset state so the video layer is visible again.
+    // Always make the video layer visible first, so the element is in the DOM.
     setVideoEnded(false);
     setVideoSkipped(false);
     setShowContent(false);
-    // Restart the video element.
+    if (!v) {
+      // Video element not yet mounted — the useEffect below will retry.
+      return;
+    }
     try {
       v.currentTime = 0;
-      void v.play().catch(() => {
-        // Autoplay can fail (browser policy). Fall back to image.
-        setVideoEnded(true);
-        window.setTimeout(() => setShowContent(true), 80);
-      });
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          // Autoplay can fail (browser policy). Fall back to image.
+          setVideoEnded(true);
+          window.setTimeout(() => setShowContent(true), 80);
+        });
+      }
     } catch {
       setVideoEnded(true);
       window.setTimeout(() => setShowContent(true), 80);
@@ -59,9 +74,23 @@ export function HeroSection() {
     window.setTimeout(() => setShowContent(true), 80);
   }, []);
 
+  // Toggle mute/unmute. Browsers block autoplay-with-sound, so we start muted
+  // and let the user opt in to audio via this button.
+  const toggleMute = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const newMuted = !v.muted;
+    v.muted = newMuted;
+    setIsMuted(newMuted);
+    // If unmuting while video already ended, replay from start so the user
+    // actually hears the audio.
+    if (!newMuted && videoEnded) {
+      playIntro();
+    }
+  }, [videoEnded, playIntro]);
+
   // === IntersectionObserver: replay the intro whenever the hero section
-  // scrolls back into view (≥ 60% visible). This is what makes the video
-  // "appear again when the user scrolls back to Home". ===
+  // scrolls back into view (≥ 60% visible). ===
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -86,13 +115,10 @@ export function HeroSection() {
     return () => observer.disconnect();
   }, [playIntro]);
 
-  // Initial autoplay on mount (some browsers need a tick after the video
-  // element is mounted before .play() will work).
+  // After mount, the video element is in the DOM — kick off the first play.
   useEffect(() => {
     playIntro();
   }, [playIntro]);
-
-  const introActive = !videoEnded;
 
   return (
     <section
@@ -100,29 +126,48 @@ export function HeroSection() {
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
     >
-      {/* === Intro Video Layer (plays first / replays on scroll-back) === */}
-      {introActive && (
-        <div
-          className={`absolute inset-0 z-30 transition-opacity duration-700 ${
-            videoSkipped ? "opacity-0" : "opacity-100"
-          }`}
-          aria-hidden={videoEnded}
-        >
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            src="/videos/test2.mp4"
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            onEnded={handleVideoEnded}
-            onError={handleVideoError}
-          />
-          {/* Subtle gradient overlay to keep brand cohesion during intro */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
+      {/* === Intro Video Layer ===
+          Always rendered (so videoRef.current is never null), visibility
+          toggled via CSS opacity. This fixes the "scroll back to Home doesn't
+          replay" bug. */}
+      <div
+        className={`absolute inset-0 z-30 transition-opacity duration-700 ${
+          videoEnded ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+        aria-hidden={videoEnded}
+      >
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          src="/videos/test2.mp4"
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          onEnded={handleVideoEnded}
+          onError={handleVideoError}
+        />
+        {/* Subtle gradient overlay to keep brand cohesion during intro */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
 
-          {/* Skip button */}
+        {/* Sound toggle — lets the user opt in to audio (browsers block
+            autoplay-with-sound, so we start muted by default). */}
+        <button
+          type="button"
+          onClick={toggleMute}
+          className="absolute top-6 right-6 z-40 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-medium border border-white/20 transition-colors flex items-center gap-2"
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
+        >
+          {isMuted ? (
+            <VolumeX className="size-4" />
+          ) : (
+            <Volume2 className="size-4" />
+          )}
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+
+        {/* Skip button */}
+        {!videoSkipped && (
           <button
             type="button"
             onClick={handleSkip}
@@ -132,8 +177,8 @@ export function HeroSection() {
             <ChevronDown className="size-4" />
             {t.hero?.scroll ?? "Skip"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* === Background Image (revealed after video ends) === */}
       <div
