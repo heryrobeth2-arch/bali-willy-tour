@@ -9,7 +9,6 @@ import {
   Car,
   Clock,
   Volume2,
-  VolumeX,
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
@@ -22,36 +21,17 @@ export function HeroSection() {
   const [showContent, setShowContent] = useState(false);
   const [videoSkipped, setVideoSkipped] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  // Debug state — visible on-screen so the user can see what's happening
-  // without needing to open DevTools.
-  const [debugInfo, setDebugInfo] = useState("");
-  const [clickCount, setClickCount] = useState(0);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Refresh debug info every 500ms while video layer is visible.
-  useEffect(() => {
-    if (videoEnded) return;
-    const id = window.setInterval(() => {
-      const v = videoRef.current;
-      if (!v) return;
-      setDebugInfo(
-        `muted=${v.muted} | volume=${v.volume.toFixed(2)} | paused=${v.paused} | ended=${v.ended} | t=${v.currentTime.toFixed(1)}s | ready=${v.readyState} | network=${v.networkState}`
-      );
-    }, 500);
-    return () => window.clearInterval(id);
-  }, [videoEnded]);
-
-  // On mount, force muted=true (because we removed the JSX `muted` attribute
-  // — see comment near the <video> element). This is required for autoplay
-  // policy to allow the initial muted playback.
+  // On mount: force muted=true so browser allows autoplay.
+  // React's `muted` JSX attribute is buggy — set it imperatively here.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     v.muted = true;
     v.volume = 1;
-    // Start muted autoplay (always allowed by browsers).
     try {
       v.currentTime = 0;
     } catch {
@@ -66,13 +46,7 @@ export function HeroSection() {
     }
   }, []);
 
-  // === THE KEY INSIGHT ===
-  // Browsers only allow autoplay-with-sound when play() is called SYNCHRONOUSLY
-  // inside a user gesture handler (click). useEffect runs AFTER React commits
-  // the DOM, by which time the user gesture is over. So we MUST call play()
-  // directly inside the click handler, not in a useEffect.
-
-  // Play the intro muted (used by IntersectionObserver — no user gesture).
+  // Replay intro muted (called from IntersectionObserver — no user gesture).
   const playIntroMuted = useCallback(() => {
     const v = videoRef.current;
     setIsMuted(true);
@@ -96,52 +70,44 @@ export function HeroSection() {
     }
   }, []);
 
-  // Toggle mute — called from a click handler, so we have a user gesture.
-  // We call v.play() SYNCHRONOUSLY here (not in useEffect) so the browser
-  // treats it as user-initiated and allows sound.
-  const toggleMute = useCallback(() => {
-    setClickCount((c) => c + 1);
+  // THE KEY: this runs SYNCHRONOUSLY inside the click handler (user gesture).
+  // Browsers only allow autoplay-with-sound when play() is called from within
+  // a user gesture handler. Calling play() in useEffect would be blocked.
+  const handleUnmuteClick = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    const wantMuted = !isMuted;
-    // Apply muted via BOTH property and attribute removal — some browsers
-    // are sticky about the HTML attribute.
-    v.muted = wantMuted;
-    if (wantMuted) {
-      v.setAttribute("muted", "");
-      v.volume = 0;
-    } else {
-      v.removeAttribute("muted");
-      v.volume = 1;
-    }
-    if (!wantMuted) {
-      // If video ended or paused, restart from beginning WITH SOUND.
-      if (v.ended || v.paused) {
-        try {
-          v.currentTime = 0;
-        } catch {
-          /* ignore */
-        }
-        const p = v.play();
-        if (p && typeof p.catch === "function") {
-          p.catch((err) => {
-            console.warn("[HeroVideo] play-with-sound blocked:", err);
-            // Fallback: try muted play
-            v.muted = true;
-            v.setAttribute("muted", "");
-            setIsMuted(true);
-            v.play().catch(() => {
-              setVideoEnded(true);
-              window.setTimeout(() => setShowContent(true), 80);
-            });
-          });
-        }
+
+    // Step 1: unmute the element BEFORE calling play()
+    v.muted = false;
+    v.volume = 1;
+
+    // Step 2: if video ended or paused, restart from beginning with sound
+    if (v.ended || v.paused) {
+      try {
+        v.currentTime = 0;
+      } catch {
+        /* ignore */
       }
-      setVideoEnded(false);
-      setShowContent(false);
     }
-    setIsMuted(wantMuted);
-  }, [isMuted]);
+
+    // Step 3: call play() synchronously inside the click handler
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.then(() => {
+        // Success — sound is now playing
+        setIsMuted(false);
+        setVideoEnded(false);
+        setShowContent(false);
+      }).catch((err) => {
+        console.warn("[HeroVideo] play-with-sound blocked:", err);
+        // Fallback: keep playing muted, but mark as tried
+        v.muted = true;
+        setIsMuted(true);
+      });
+    } else {
+      setIsMuted(false);
+    }
+  }, []);
 
   const handleVideoEnded = useCallback(() => {
     setVideoEnded(true);
@@ -181,11 +147,6 @@ export function HeroSection() {
     return () => observer.disconnect();
   }, [playIntroMuted]);
 
-  // Initial play on mount (muted autoplay is always allowed).
-  useEffect(() => {
-    playIntroMuted();
-  }, [playIntroMuted]);
-
   return (
     <section
       ref={sectionRef}
@@ -200,24 +161,14 @@ export function HeroSection() {
         aria-hidden={videoEnded}
       >
         {/*
-          NOTE: `muted` and `autoPlay` are HTML attributes set once on mount.
-          We do NOT control `muted` via React state — React has a known bug
-          where the `muted` attribute doesn't sync with the DOM property.
-          Instead, we set v.muted imperatively in our handlers.
-        */}
-        {/*
-          CRITICAL: We do NOT pass `muted` as a JSX attribute. React has a
-          long-standing bug where the `muted` JSX attribute does NOT sync
-          reliably with the DOM `HTMLMediaElement.muted` property — it can
-          re-mute the element on every re-render, undoing our imperative
-          `v.muted = false` in the click handler.
+          CRITICAL: Do NOT pass `muted` or `autoPlay` as JSX attributes.
+          React has a known bug where the `muted` attribute doesn't sync
+          with the DOM `HTMLMediaElement.muted` property — it can re-mute
+          the element on every re-render, undoing our imperative unmute.
 
-          Instead, we set `v.muted` imperatively:
+          We set v.muted imperatively:
             - On mount (useEffect) → muted = true (for autoplay policy)
-            - On click (toggleMute) → muted = !isMuted
-
-          We also do NOT pass `autoPlay` — we call v.play() imperatively
-          so we have full control over when playback starts.
+            - On click (handleUnmuteClick) → muted = false + play() with sound
         */}
         <video
           ref={videoRef}
@@ -229,42 +180,53 @@ export function HeroSection() {
           onError={handleVideoError}
         />
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 pointer-events-none" />
 
-        {/* === DEBUG OVERLAY (visible on screen) ===
-            Shows real-time video state so we can diagnose without DevTools. */}
-        {!videoEnded && (
-          <div className="absolute top-6 left-6 z-40 px-3 py-2 rounded-lg bg-black/70 backdrop-blur-sm text-green-400 text-xs font-mono border border-green-500/30 max-w-md">
-            <div className="text-white font-bold mb-1">DEBUG VIDEO</div>
-            <div>{debugInfo || "loading..."}</div>
-            <div className="text-white/60 mt-1">
-              isMuted(state)={String(isMuted)} | clicks={clickCount}
-            </div>
-          </div>
+        {/* === BIG UNMUTE BUTTON ===
+            Positioned at center-bottom, large, pulsing — impossible to miss.
+            z-index higher than header (z-50) so it's never covered. */}
+        {isMuted && !videoEnded && (
+          <button
+            type="button"
+            onClick={handleUnmuteClick}
+            className="absolute left-1/2 bottom-24 -translate-x-1/2 z-[60] flex flex-col items-center gap-3 group"
+            aria-label="Aktifkan suara video"
+          >
+            {/* Pulsing ring animation */}
+            <span className="absolute inset-0 -m-4 rounded-full bg-white/20 animate-ping" />
+            <span className="relative flex items-center justify-center w-20 h-20 rounded-full bg-white text-black shadow-2xl group-hover:scale-110 transition-transform duration-200 border-4 border-white/50">
+              <Volume2 className="size-9" />
+            </span>
+            <span className="relative px-5 py-2 rounded-full bg-black/70 backdrop-blur-sm text-white text-sm font-semibold border border-white/30 whitespace-nowrap">
+              🔊 Aktifkan Suara
+            </span>
+          </button>
         )}
 
-        {/* Sound toggle — clicking this is a user gesture, so play() with
-            sound is allowed by the browser. */}
-        <button
-          type="button"
-          onClick={toggleMute}
-          className="absolute top-6 right-6 z-40 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-medium border border-white/20 transition-colors flex items-center gap-2"
-          aria-label={isMuted ? "Unmute video" : "Mute video"}
-        >
-          {isMuted ? (
-            <VolumeX className="size-4" />
-          ) : (
-            <Volume2 className="size-4" />
-          )}
-          {isMuted ? "Unmute" : "Mute"}
-        </button>
+        {/* Mute indicator (after unmute — small, top-center, below navbar) */}
+        {!isMuted && !videoEnded && (
+          <button
+            type="button"
+            onClick={() => {
+              const v = videoRef.current;
+              if (!v) return;
+              v.muted = true;
+              setIsMuted(true);
+            }}
+            className="absolute left-1/2 top-24 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-medium border border-white/20"
+            aria-label="Mute video"
+          >
+            <Volume2 className="size-4 text-teal-400" />
+            Suara Aktif
+          </button>
+        )}
 
-        {/* Skip button */}
+        {/* Skip button — bottom right */}
         {!videoSkipped && (
           <button
             type="button"
             onClick={handleSkip}
-            className="absolute bottom-6 right-6 z-40 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-medium border border-white/20 transition-colors flex items-center gap-2"
+            className="absolute bottom-6 right-6 z-[60] px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white text-sm font-medium border border-white/20 transition-colors flex items-center gap-2"
             aria-label="Skip intro video"
           >
             <ChevronDown className="size-4" />
