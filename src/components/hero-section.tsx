@@ -76,18 +76,40 @@ export function HeroSection() {
 
   // Toggle mute/unmute. Browsers block autoplay-with-sound, so we start muted
   // and let the user opt in to audio via this button.
+  //
+  // IMPORTANT: we use the `isMuted` React state as the single source of truth
+  // AND mirror it to the video element imperatively in the same tick. We must
+  // NOT rely on the JSX `muted` attribute alone, because React re-renders can
+  // clobber an imperative `v.muted = false` set inside a click handler.
   const toggleMute = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    const newMuted = !v.muted;
+    const newMuted = !isMuted;
+    // Apply to the element FIRST so the audio toggles immediately.
     v.muted = newMuted;
+    // Also try volume in case muted property is sticky on some browsers.
+    if (!newMuted) {
+      v.volume = 1;
+    }
     setIsMuted(newMuted);
     // If unmuting while video already ended, replay from start so the user
-    // actually hears the audio.
+    // actually hears the audio. The play() call happens within the user
+    // gesture, so it is allowed to play with sound.
     if (!newMuted && videoEnded) {
-      playIntro();
+      // Defer one frame so React commits the new `isMuted` before we replay,
+      // ensuring the JSX-controlled `muted` attribute matches our intent.
+      window.requestAnimationFrame(() => playIntro());
     }
-  }, [videoEnded, playIntro]);
+  }, [isMuted, videoEnded, playIntro]);
+
+  // Keep the video element's `muted` property in sync with `isMuted` state.
+  // This protects against React re-renders resetting the property.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = isMuted;
+    if (!isMuted) v.volume = 1;
+  }, [isMuted]);
 
   // === IntersectionObserver: replay the intro whenever the hero section
   // scrolls back into view (≥ 60% visible). ===
@@ -141,7 +163,7 @@ export function HeroSection() {
           className="w-full h-full object-cover"
           src="/videos/test2.mp4"
           autoPlay
-          muted
+          muted={isMuted}
           playsInline
           preload="auto"
           onEnded={handleVideoEnded}
