@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   Users,
   Eye,
@@ -16,9 +15,54 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n";
+import { useEffect, useRef, useState } from "react";
 
 export function TentangKamiSection() {
   const { t } = useLanguage();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Autoplay (muted) when video scrolls into view, pause when out of view.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
+            v.muted = true;
+            const p = v.play();
+            if (p && typeof p.catch === "function") {
+              p.then(() => setIsPlaying(true)).catch(() => {
+                /* ignore */
+              });
+            }
+          } else {
+            v.pause();
+            setIsPlaying(false);
+          }
+        }
+      },
+      { threshold: [0, 0.4, 1] }
+    );
+    observer.observe(v);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleUnmute = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    if (!v.muted) {
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          /* ignore */
+        });
+      }
+    }
+  };
 
   const misiItems = [
     t.tentangKami.misi1,
@@ -110,18 +154,31 @@ export function TentangKamiSection() {
           </p>
         </div>
 
-        {/* About + Image */}
+        {/* About + Video */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-14 mb-16">
-          {/* Image */}
-          <div className="relative rounded-2xl overflow-hidden h-72 sm:h-96 lg:h-auto">
-            <Image
-              src="/images/about-uluwatu.jpg"
-              alt="Uluwatu Temple - Bali Willy Tour"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+          {/* Video */}
+          <div className="relative rounded-2xl overflow-hidden h-72 sm:h-96 lg:h-auto bg-black group">
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              src="/videos/visimisi.mp4"
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              controls
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-teal-900/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-teal-900/30 to-transparent pointer-events-none" />
+            {/* Unmute button overlay — disappears when controls are used */}
+            <button
+              type="button"
+              onClick={handleUnmute}
+              className="absolute bottom-4 left-4 z-10 px-4 py-2 rounded-full bg-white/90 hover:bg-white text-gray-900 text-xs font-semibold shadow-lg flex items-center gap-2 transition-colors"
+              aria-label="Aktifkan suara video"
+            >
+              <MessageCircle className="size-3.5" />
+              Klik untuk suara
+            </button>
           </div>
 
           {/* Text Content */}
