@@ -11,7 +11,6 @@ export function Footer() {
   const quickLinks = [
     { href: "#home", label: t.nav.home },
     { href: "#paket-tour", label: t.nav.paketTour },
-    { href: "#rencana-perjalanan", label: t.nav.rencanaPerjalanan },
     { href: "#tentang-kami", label: t.nav.tentangKami },
     { href: "#kontak-booking", label: t.nav.kontakBooking },
   ];

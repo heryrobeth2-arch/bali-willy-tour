@@ -24,7 +24,6 @@ export function Header() {
   const navLinks = [
     { href: "#home", label: t.nav.home },
     { href: "#paket-tour", label: t.nav.paketTour },
-    { href: "#rencana-perjalanan", label: t.nav.rencanaPerjalanan },
     { href: "#tentang-kami", label: t.nav.tentangKami },
     { href: "#kontak-booking", label: t.nav.kontakBooking },
     { href: "/membership", label: t.nav.membership, icon: Crown },
@@ -35,7 +34,7 @@ export function Header() {
       setScrolled(window.scrollY > 50);
 
       // Determine active section
-      const sectionIds = ["home", "paket-tour", "rencana-perjalanan", "tentang-kami", "kontak-booking"];
+      const sectionIds = ["home", "paket-tour", "tentang-kami", "kontak-booking"];
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(sectionIds[i]);
         if (el) {
