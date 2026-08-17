@@ -65,3 +65,4 @@ worklog.md
 keep-alive.sh
 
 /src/generated/prisma
+.env.turso
