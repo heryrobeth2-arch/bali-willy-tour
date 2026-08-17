@@ -11,13 +11,14 @@ node_modules
 # testing
 /coverage
 
-# next.js build output - we INCLUDE .next/ for faster deployment
-# Only exclude cache and trace files (they're large and regenerable)
-/.next/cache/
-/.next/trace
-/.next/trace-build
-/.next/dev/
+# next.js build output - exclude ALL .next/ for clean repo
+/.next/
 /out/
+
+# local database
+/db/
+*.db
+*.db-journal
 
 # production
 /build

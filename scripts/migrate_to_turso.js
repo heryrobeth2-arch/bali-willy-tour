@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const TURSO_URL = "libsql://bali-willy-tour-purnomo.aws-ap-northeast-1.turso.io";
-const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3RjRFT0pvREVmR25xR1l5ZXRWX0tnIiwib3JnX2lkIjoxMDAwMjIzMDMwfQ.YWtDRB2JeorruW0EnKwIT8oTHrqzlnOng4bR132msO9nuRIzkhn3N26NCfbh4pDdLKikOka8mgsLTZTxIh91CA";
+const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODY5NDk1NDYsImlkIjoiMDFhMDBlNGEtODAwMS03Mjk3LTlkNzEtOTllY2I0Mjc5NDIwIiwia2lkIjoiSE9sX3VBUUhHV1o0NEJMQ2FsdUZqeEY4MGpPX2NzR004U2llUVpMTTdiQSIsInJpZCI6ImM0NDBjNzc4LTJlMDAtNDU2ZC04NmYyLWJiMGNkODhmYTU0NiJ9.iz6GZtr_i1_evr4_OW4WrrR8pMCE4xNTdS3z6LK_cLmVkX9HCPkAdJ2YtFzeoZTZgZVM7EXmdgmZ0h5xR0KHDA";
 const LOCAL_DB = path.resolve(__dirname, "../db/custom.db");
 const SCHEMA_SQL = "/tmp/schema.sql";
 
@@ -18,17 +18,31 @@ async function main() {
 
   console.log("=== Step 1: Apply schema to Turso ===");
   const sql = fs.readFileSync(SCHEMA_SQL, "utf8");
-  // Split by semicolons, but skip empty statements
-  const statements = sql
-    .split(/;\s*\n/)
-    .map((s) => s.trim())
-    .filter((s) => s && !s.startsWith("--"));
-  for (const stmt of statements) {
+  // Split by semicolons, then filter out empty/comment-only statements
+  const allStmts = sql.split(";").map((s) => s.trim());
+  const statements = allStmts.filter((s) => {
+    if (!s) return false;
+    // Remove SQL comments to check if there's actual SQL left
+    const withoutComments = s
+      .split("\n")
+      .filter((line) => !line.trim().startsWith("--"))
+      .join("\n")
+      .trim();
+    return withoutComments.length > 0;
+  });
+  console.log(`  Found ${statements.length} statements to execute`);
+  for (const [i, stmt] of statements.entries()) {
     try {
-      await turso.execute(stmt);
-      console.log("  ✓", stmt.substring(0, 60).replace(/\n/g, " ") + "...");
+      // Strip leading comments for execution
+      const sqlOnly = stmt
+        .split("\n")
+        .filter((line) => !line.trim().startsWith("--"))
+        .join("\n")
+        .trim();
+      await turso.execute(sqlOnly);
+      console.log(`  ✓ [${i + 1}]`, sqlOnly.substring(0, 80).replace(/\n/g, " "));
     } catch (e) {
-      console.error("  ✗", e.message);
+      console.error(`  ✗ [${i + 1}]`, e.message);
     }
   }
 
