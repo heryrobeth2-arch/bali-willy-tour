@@ -45,7 +45,7 @@ export function KontakBookingSection() {
       icon: <Phone className="size-5" />,
       label: t.kontak.labelWhatsApp,
       value: "+62 852-223-29128",
-      href: "https://wa.me/6285222329128",
+      href: "https://wa.me/6281947747789",
     },
     {
       icon: <Mail className="size-5" />,
@@ -91,7 +91,7 @@ ${t.kontak.waPesan} ${formData.message}`;
 
     const encodedMessage = encodeURIComponent(waMessage);
     window.open(
-      `https://wa.me/6285222329128?text=${encodedMessage}`,
+      `https://wa.me/6281947747789?text=${encodedMessage}`,
       "_blank"
     );
   };
@@ -164,7 +164,7 @@ ${t.kontak.waPesan} ${formData.message}`;
               className="w-full bg-[#25D366] hover:bg-[#1da851] text-white h-12 text-base"
             >
               <Link
-                href="https://wa.me/6285222329128"
+                href="https://wa.me/6281947747789"
                 target="_blank"
                 rel="noopener noreferrer"
               >
