@@ -130,7 +130,7 @@ export function Header() {
               }`}
             >
               <Link
-                href="https://wa.me/6285222329128"
+                href="https://wa.me/6281947747789"
                 target="_blank"
                 rel="noopener noreferrer"
               >
