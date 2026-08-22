@@ -70,31 +70,31 @@ async function main() {
       namaTour: "Package A - North Bali Tour",
       deskripsi: "Explore the beautiful northern Bali including Bedugul, Lovina Beach, and Gitgit Waterfall. A full day of natural wonders and cultural experiences.",
       gambarUrl: "/images/package-a.jpg",
-      customLink: "https://wa.me/6285222329128?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20A%20-%20North%20Bali%20Tour",
+      customLink: "https://wa.me/6281947747789?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20A%20-%20North%20Bali%20Tour",
     },
     {
       namaTour: "Package B - Ubud Tour",
       deskripsi: "Discover the cultural heart of Bali with visits to Ubud Monkey Forest, Tegalalang Rice Terrace, and traditional art villages.",
       gambarUrl: "/images/package-b.jpg",
-      customLink: "https://wa.me/6285222329128?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20B%20-%20Ubud%20Tour",
+      customLink: "https://wa.me/6281947747789?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20B%20-%20Ubud%20Tour",
     },
     {
       namaTour: "Package C - South Bali & The Edge Tour",
       deskripsi: "Experience the stunning southern coast of Bali including Uluwatu Temple, Padang Padang Beach, and the famous Kecak Dance.",
       gambarUrl: "/images/package-c.jpg",
-      customLink: "https://wa.me/6285222329128?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20C%20-%20South%20Bali%20Tour",
+      customLink: "https://wa.me/6281947747789?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20C%20-%20South%20Bali%20Tour",
     },
     {
       namaTour: "Package D - East Bali Tour",
       deskripsi: "Journey to eastern Bali featuring Lempuyang Temple (Gate of Heaven), Tirta Gangga Water Palace, and Virgin Beach.",
       gambarUrl: "/images/package-d.jpg",
-      customLink: "https://wa.me/6285222329128?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20D%20-%20East%20Bali%20Tour",
+      customLink: "https://wa.me/6281947747789?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Package%20D%20-%20East%20Bali%20Tour",
     },
     {
       namaTour: "Nusa Penida Day Trip",
       deskripsi: "Full day trip to Nusa Penida Island visiting Kelingking Beach, Angel's Billabong, Broken Beach, and Crystal Bay for snorkeling.",
       gambarUrl: "/images/nusa-penida.jpg",
-      customLink: "https://wa.me/6285222329128?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Nusa%20Penida%20Day%20Trip",
+      customLink: "https://wa.me/6281947747789?text=Hi%20Bali%20Willy%20Tour%2C%20I%20want%20to%20book%20Nusa%20Penida%20Day%20Trip",
     },
   ];
 
