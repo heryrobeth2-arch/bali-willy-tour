@@ -55,11 +55,11 @@ let members: DemoMember[] = [
 ];
 
 let tourPackages: DemoTourPackage[] = [
-  { packageId: "pkg001", namaTour: "North Bali Tour", deskripsi: "Explore the beauty of North Bali including Gitgit Waterfall and Lovina Beach", gambarUrl: "/images/package-a.jpg", customLink: "https://wa.me/6285222329128?text=North%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
-  { packageId: "pkg002", namaTour: "Ubud Tour", deskripsi: "Visit Tegalalang Rice Terrace, Monkey Forest, and Ubud Art Village", gambarUrl: "/images/package-b.jpg", customLink: "https://wa.me/6285222329128?text=Ubud%20Tour", createdAt: "2026-01-01T10:00:00Z" },
-  { packageId: "pkg003", namaTour: "South Bali & Uluwatu Tour", deskripsi: "Enjoy Uluwatu Temple, Padang Padang Beach, and Kecak Dance", gambarUrl: "/images/package-c.jpg", customLink: "https://wa.me/6285222329128?text=South%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
-  { packageId: "pkg004", namaTour: "East Bali Tour", deskripsi: "Discover Lempuyang Temple, Tirta Gangga, and Virgin Beach", gambarUrl: "/images/package-d.jpg", customLink: "https://wa.me/6285222329128?text=East%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
-  { packageId: "pkg005", namaTour: "Nusa Penida Tour", deskripsi: "Day trip to Nusa Penida Island - Kelingking Beach, Angel's Billabong, Crystal Bay", gambarUrl: "/images/nusa-penida.jpg", customLink: "https://wa.me/6285222329128?text=Nusa%20Penida%20Tour", createdAt: "2026-01-01T10:00:00Z" },
+  { packageId: "pkg001", namaTour: "North Bali Tour", deskripsi: "Explore the beauty of North Bali including Gitgit Waterfall and Lovina Beach", gambarUrl: "/images/package-a.jpg", customLink: "https://wa.me/6281947747789?text=North%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
+  { packageId: "pkg002", namaTour: "Ubud Tour", deskripsi: "Visit Tegalalang Rice Terrace, Monkey Forest, and Ubud Art Village", gambarUrl: "/images/package-b.jpg", customLink: "https://wa.me/6281947747789?text=Ubud%20Tour", createdAt: "2026-01-01T10:00:00Z" },
+  { packageId: "pkg003", namaTour: "South Bali & Uluwatu Tour", deskripsi: "Enjoy Uluwatu Temple, Padang Padang Beach, and Kecak Dance", gambarUrl: "/images/package-c.jpg", customLink: "https://wa.me/6281947747789?text=South%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
+  { packageId: "pkg004", namaTour: "East Bali Tour", deskripsi: "Discover Lempuyang Temple, Tirta Gangga, and Virgin Beach", gambarUrl: "/images/package-d.jpg", customLink: "https://wa.me/6281947747789?text=East%20Bali%20Tour", createdAt: "2026-01-01T10:00:00Z" },
+  { packageId: "pkg005", namaTour: "Nusa Penida Tour", deskripsi: "Day trip to Nusa Penida Island - Kelingking Beach, Angel's Billabong, Crystal Bay", gambarUrl: "/images/nusa-penida.jpg", customLink: "https://wa.me/6281947747789?text=Nusa%20Penida%20Tour", createdAt: "2026-01-01T10:00:00Z" },
 ];
 
 let rewards: DemoReward[] = [
