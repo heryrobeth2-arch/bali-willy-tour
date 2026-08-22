@@ -44,7 +44,7 @@ export function KontakBookingSection() {
     {
       icon: <Phone className="size-5" />,
       label: t.kontak.labelWhatsApp,
-      value: "+62 852-223-29128",
+      value: "+62 819-477-47789",
       href: "https://wa.me/6281947747789",
     },
     {
