@@ -299,7 +299,7 @@ export function HeroSection() {
             className="bg-[#25D366] hover:bg-[#1da851] text-white px-8 py-6 text-base sm:text-lg shadow-lg shadow-[#25D366]/30 gap-2"
           >
             <Link
-              href="https://wa.me/6285222329128"
+              href="https://wa.me/6281947747789"
               target="_blank"
               rel="noopener noreferrer"
             >
