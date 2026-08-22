@@ -412,7 +412,7 @@ export function MultiDayPackageCard({ pkg, t }: MultiDayPackageCardProps) {
                 className="flex-1 border-[#25D366] text-[#1da851] hover:bg-[#25D366] hover:text-white"
               >
                 <Link
-                  href="https://wa.me/6285222329128"
+                  href="https://wa.me/6281947747789"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
