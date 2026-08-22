@@ -217,7 +217,7 @@ ${t.kontak.waPesan} ${formData.message}`;
                         id="whatsapp"
                         name="whatsapp"
                         type="tel"
-                        placeholder="+62 852 xxxx xxxx"
+                        placeholder="+62 819 xxxx xxxx"
                         value={formData.whatsapp}
                         onChange={handleChange}
                         required
