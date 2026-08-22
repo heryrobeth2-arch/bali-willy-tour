@@ -130,7 +130,7 @@ export function Header() {
               }`}
             >
               <Link
-                href="https://wa.me/6285222329128"
+                href="https://wa.me/6281947747789"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -200,7 +200,7 @@ export function Header() {
                 className="w-full bg-[#25D366] hover:bg-[#1da851] text-white gap-2"
               >
                 <Link
-                  href="https://wa.me/6285222329128"
+                  href="https://wa.me/6281947747789"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
