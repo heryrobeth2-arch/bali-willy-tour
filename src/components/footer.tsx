@@ -65,7 +65,7 @@ export function Footer() {
                 <Facebook className="size-4" />
               </Link>
               <Link
-                href="https://wa.me/6285222329128"
+                href="https://wa.me/6281947747789"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 bg-[#25D366] hover:bg-[#1da851] rounded-full flex items-center justify-center transition-colors"
