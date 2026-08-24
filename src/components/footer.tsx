@@ -125,7 +125,7 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <Mail className="size-4 mt-0.5 shrink-0 text-teal-400" />
                 <span className="text-sm text-teal-300">
-                  info@baliwillytour.com
+                  baliwillytour@gmail.com
                 </span>
               </li>
               <li className="flex items-start gap-3">
