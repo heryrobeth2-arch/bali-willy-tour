@@ -51,7 +51,7 @@ export function KontakBookingSection() {
       icon: <Mail className="size-5" />,
       label: "Email",
       value: "baliwillytour@gmail.com",
-      href: "baliwillytour@gmail.com",
+      href: "mailto:baliwillytour@gmail.com",
     },
     {
       icon: <MapPin className="size-5" />,
